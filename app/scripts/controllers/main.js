@@ -10,19 +10,16 @@
 angular.module('belPlus2App')
   .controller(
   'MainCtrl',
-  ['ndexService', '$location', '$scope', '$http', '$modal',
-  function (ndexService, $location, $scope, $http, $modal) {
-    this.awesomeThings = [
-      'HTML5 Boilerplate',
-      'AngularJS',
-      'Karma'
-    ];
+  ['ndexService', '$location', '$scope', '$http',
+  function (ndexService, $location, $scope, $http) {
+
     //---------------------------------------------
-    // SignIn / SignUp Handler
+    // SignIn Handler
     //---------------------------------------------
 
     $scope.signIn = {};
     $scope.signIn.newUser = {};
+    $scope.loggedIn = false;
 
     $scope.signIn.submitSignIn = function () {
       ndexService.clearUserCredentials();
@@ -38,8 +35,9 @@ angular.module('belPlus2App')
         {
           //sharedProperties.setCurrentUser(data.externalId, data.accountName); //this info will have to be sent via emit if we want dynamic info on the nav bar
           ndexService.setUserCredentials(data.accountName, data.externalId, $scope.signIn.password);
-          $scope.$emit('LOGGED_IN'); //Angular service capability, shoot a signal up the scope tree notifying parent scopes this event occurred, see mainController
-          $location.path('/user/' + data.externalId);
+          //$scope.$emit('LOGGED_IN'); //Angular service capability, shoot a signal up the scope tree notifying parent scopes this event occurred, see mainController
+          //$location.path('/user/' + data.externalId);
+          $scope.loggedIn = true;
           $scope.signIn.accountName = null;
           $scope.signIn.password = null;
         }).
@@ -55,23 +53,10 @@ angular.module('belPlus2App')
         });
     };
 
+
+
     $scope.signIn.cancel = function () {
       $scope.main.showSignIn = false;
-    };
-
-    $scope.signIn.openSignUp = function () {
-      $scope.signIn.modalInstance = $modal.open({
-        templateUrl: 'signUp.html',
-        scope: $scope,
-        backdrop: 'static'
-      });
-    };
-
-    $scope.signIn.cancelSignUp = function () {
-      $scope.signIn.newUser = {};
-      $scope.signIn.modalInstance.close();
-      $scope.signIn.modalInstance = null;
-      delete $scope.signIn.signUpErrors;
     };
 
     $scope.$watch('signIn.newUser.password', function () {
@@ -81,71 +66,8 @@ angular.module('belPlus2App')
       delete $scope.signIn.signUpErrors;
     });
 
-    $scope.signIn.signUp = function () {
-      if ($scope.isProcessing){
-        return;
-      }
-      $scope.isProcessing = true;
-      //check if passwords match, else throw error
-      if ($scope.signIn.newUser.password !== $scope.signIn.newUser.passwordConfirm) {
-        $scope.signIn.signUpErrors = 'Passwords do not match';
-        $scope.isProcessing = false;
-        return;
-      }
 
-      ndexService.createUser($scope.signIn.newUser,
-        function (userData) {
-          //sharedProperties.setCurrentUser(userData.externalId, userData.accountName);
-          ndexService.setUserInfo(userData.accountName, userData.externalId);
-          $scope.$emit('LOGGED_IN');
-          $scope.signIn.cancelSignUp();// doesn't really cancel
-          $location.path('user/' + userData.externalId);
-          $scope.isProcessing = false;
-        },
-        function (error) {
-          $scope.signIn.signUpErrors = error.data.message;
-          $scope.isProcessing = false;
-          //console.log(error)
-        });
-    };
 
-    $scope.forgot = {};
 
-    $scope.forgotPassword = function () {
-      var modalInstance = $modal.open({
-        templateUrl: 'forgotPassword.html',
-        controller: function ($scope, $modalInstance, $log, forgot) {
-          $scope.forgot = forgot;
-          $scope.resetPassword = function () {
-            var url = ndexService.getNdexServerUri() + '/user/forgot-password';
-            $http.post(url, $scope.forgot.accountName).
-              success(function () // data, status, headers, config
-              {
-                forgot.done = true;
-                forgot.errorMsg = null;
-                forgot.successMsg = 'A new password has been sent to the email of record.';
-              }).
-              error(function (data) // , status, headers, config
-              {
-                forgot.errorMsg = data.message;
-              });
-          };
-
-          $scope.cancel = function () {
-            $modalInstance.dismiss('cancel');
-          };
-        },
-        resolve: {
-          forgot: function () {
-            return $scope.forgot;
-          }
-        }
-      });
-
-      modalInstance.result.finally(function () {
-        $scope.forgot = {};
-      });
-
-    };
 
   }]);

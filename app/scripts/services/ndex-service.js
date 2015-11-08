@@ -11,10 +11,64 @@ angular.module('belPlus2App')
   .service('ndexService', ['$http', '$q', function ($http, $q) {
     // AngularJS will instantiate a singleton by calling 'new' on this function
 
-    var ndexServerURI = 'http://public.ndexbio.org/rest';
+    /*---------------------------------------------------------------------*
+     * NDEx Server
+     *---------------------------------------------------------------------*/
 
-    this.getNdexServerURI = function(){
-      return ndexServerURI;
+    var ndexServerUri = 'http://public.ndexbio.org/rest';
+
+    this.getNdexServerUri = function(){
+      return ndexServerUri;
+    };
+
+    /*---------------------------------------------------------------------*
+     * Networks
+     *---------------------------------------------------------------------*/
+
+    this.getNetworkSummary = function (networkId){
+      var url = '/network/' + networkId;
+      var config = getGetConfig(url, null);
+      return request(config);
+    };
+
+    this.searchNetworks = function (searchString, accountName, permission, includeGroups, skipBlocks, blockSize) {
+      var url = '/network/search/' + skipBlocks.toString() + '/' + blockSize.toString();
+      var postData = {};
+      if( accountName )
+      {
+        postData = {
+          searchString: searchString,
+          accountName: accountName
+        };
+      }
+      else
+      {
+        postData = {
+          searchString: searchString
+        };
+      }
+
+      if (permission) {
+        postData.permission = permission;
+      }
+      if (includeGroups) {
+        postData.includeGroups = includeGroups;
+      }
+
+      var config = getPostConfig(url, postData);
+      return request(config);
+    };
+
+    this.getNetworkByEdges = function (networkId, skipBlocks, blockSize) {
+      var url = '/network/' + networkId + '/edge/asNetwork/' + skipBlocks + '/' + blockSize;
+      var config = getGetConfig(url, null);
+      return request(config);
+    };
+
+    this.getCompleteNetwork = function (networkId) {
+      var url = '/network/' + networkId + '/asNetwork/';
+      var config = getGetConfig(url, null);
+      return request(config);
     };
 
     var addAuth = function(encodedUser, config){
@@ -34,12 +88,12 @@ angular.module('belPlus2App')
     var getDeleteConfig = function (url) {
       var config = {
         method: 'DELETE',
-        url: ndexServerURI + url,
+        url: ndexServerUri + url,
         headers: {
           //Authorization: 'Basic ' + factory.getEncodedUser()
         }
       };
-      addAuth(this.getEncodedUser(), config);
+      addAuth(getEncodedUser(), config);
       return config;
     };
 
@@ -49,12 +103,12 @@ angular.module('belPlus2App')
     var getGetConfig = function (url, queryArgs) {
       var config = {
         method: 'GET',
-        url: ndexServerURI + url,
+        url: ndexServerUri + url,
         headers: {
           //Authorization: 'Basic ' + factory.getEncodedUser()
         }
       };
-      addAuth(this.getEncodedUser(), config);
+      addAuth(getEncodedUser(), config);
       if (queryArgs) {
         config.data = JSON.stringify(queryArgs);
       }
@@ -67,11 +121,11 @@ angular.module('belPlus2App')
     var getPostConfig = function (url, postData) {
       var config = {
         method: 'POST',
-        url: ndexServerURI + url,
+        url: ndexServerUri + url,
         data: angular.toJson(postData),
         headers: {}
       };
-      addAuth(this.getEncodedUser(), config);
+      addAuth(getEncodedUser(), config);
       return config;
     };
 
@@ -82,11 +136,11 @@ angular.module('belPlus2App')
     var getPutConfig = function (url, data) {
       var config = {
         method: 'PUT',
-        url: ndexServerURI + url,
+        url: ndexServerUri + url,
         data: angular.toJson(data),
         headers: {}
       };
-      addAuth(this.getEncodedUser(), config);
+      addAuth(getEncodedUser(), config);
       return config;
     };
 
@@ -183,6 +237,10 @@ angular.module('belPlus2App')
       }
     };
 
+    var request = function(config){
+      return $http(config);
+    };
+
     var requestWithAbort = function(config){
       // The $http timeout property takes a deferred value that can abort AJAX request
       var deferredAbort = $q.defer();
@@ -210,63 +268,16 @@ angular.module('belPlus2App')
       return request;
     };
 
-    /*---------------------------------------------------------------------*
-     * Networks
-     *---------------------------------------------------------------------*/
 
-    // Network Summary
-    var getNetworkSummaryConfig = function (networkId) {
-      // networks/{networkId}
-      var url = '/network/' + networkId;
-      return getGetConfig(url, null);
-    };
 
-    this.getNetworkSummary = function (networkId){
-      var config = getNetworkSummaryConfig(networkId);
-      return requestWithAbort(config);
-    };
 
-    // Network by Edges
-    var getNetworkByEdgesConfig = function (networkId, skipBlocks, blockSize) {
-      // network/{networkId}/edge/{skip}/{top}
-      // GET to NetworkAService
-      var url = '/network/' + networkId + '/edge/asNetwork/' + skipBlocks + '/' + blockSize;
-      return getGetConfig(url, null);
-    };
 
-    this.getNetworkByEdges = function (networkId, skipBlocks, blockSize) {
-      var config = getNetworkByEdgesConfig(networkId, skipBlocks, blockSize);
-      return requestWithAbort(config);
-    };
+
+
+
 
     // Search Networks
-    this.searchNetworks = function (searchString, accountName, permission, includeGroups, skipBlocks, blockSize) {
-      var url = '/network/search/' + skipBlocks.toString() + '/' + blockSize.toString();
-      var postData = {};
-      if( accountName )
-      {
-        postData = {
-          searchString: searchString,
-          accountName: accountName
-        };
-      }
-      else
-      {
-        postData = {
-          searchString: searchString
-        };
-      }
 
-      if (permission) {
-        postData.permission = permission;
-      }
-      if (includeGroups) {
-        postData.includeGroups = includeGroups;
-      }
-
-      var config = getPostConfig(url, postData);
-      return requestWithAbort(config);
-    };
 
     // Query Network
     this.queryNetwork = function (networkId, startingTerms, searchDepth, edgeLimit){
