@@ -1,1 +1,10 @@
-<p>This is the edit view.</p>
+<p>Citations for {{editor.networkId}}</p>
+<ul ng-repeat="citation in editor.model.citations">
+  <p>{{citation.identifier}}</p>
+  <ul ng-repeat="support in citation.supports">
+    <p>{{support.text}}</p>
+    <ul ng-repeat="statement in support.statements">
+      <p></p>
+      </ul>
+  </ul>
+</ul>

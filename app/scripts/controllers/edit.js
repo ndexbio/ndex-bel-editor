@@ -16,6 +16,7 @@ angular.module('belPlus2App')
   .controller('EditCtrl', ['ndexService', '$routeParams', '$scope',  function (ndexService, $routeParams, $scope) {
 
     $scope.editor = {};
+    $scope.foo = 'this is foo';
 
     var editor = $scope.editor;
     editor.queryErrors = [];
@@ -27,6 +28,8 @@ angular.module('belPlus2App')
     }
 
     editor.ndexUri = ndexService.getNdexServerUri();
+
+    console.log('in edit.js');
 
     console.log(editor);
 
@@ -110,7 +113,7 @@ angular.module('belPlus2App')
         });
         //var edgeIds = Object.keys(jdex.edges);
         var citationEdgeMap = {};
-        //var supportEdgeMap = {};
+        var supportEdgeMap = {};
         angular.forEach(jdex.edges, function(jdexEdge, jdexEdgeId){
           angular.forEach(jdexEdge.citationIds, function(citationId){
             var entry = citationEdgeMap[citationId];
@@ -120,9 +123,33 @@ angular.module('belPlus2App')
             }
             entry.push(jdexEdgeId);
           });
+          angular.forEach(jdexEdge.supportIds, function(supportId){
+            var entry = supportEdgeMap[supportId];
+            if (!entry){
+              entry = [];
+              supportEdgeMap[supportId] = entry;
+            }
+            entry.push(jdexEdgeId);
+          });
         });
-        console.log('computed citationEdgeMap');
+        console.log('computed citationEdgeMap and supportEdgeMap');
+        var citationSupportMap = {};
+        angular.forEach(jdex.supports, function(jdexSupport, jdexSupportId){
+          var citationId = jdexSupport.citationId;
+          if (citationId){
+            var entry = citationSupportMap[citationId];
+            if (!entry){
+              entry = [];
+              citationSupportMap[citationId] = entry;
+            }
+            entry.push(jdexSupportId);
+          }
+        });
+        console.log('computed citationSupportMap');
         jdex.citationEdgeMap = citationEdgeMap;
+        jdex.supportEdgeMap = supportEdgeMap;
+        jdex.citationSupportMap = citationSupportMap;
+
         var model = this;
         console.log(Object.keys(jdex.citations).length + ' citations in source');
         angular.forEach(jdex.citations, function (jdexCitation, jdexCitationId) {
@@ -178,12 +205,21 @@ angular.module('belPlus2App')
         this.identifier = jdexCitation.identifier;
         var cit = this;
 
-        console.log('citation: ' + jdexCitationId + ' ' + cit.identifier);
+        console.log('citation: ' + jdexCitationId + ' ' + cit.identifier + ' ' + jdex.name);
+
+        var supportIds = jdex.citationSupportMap[jdexCitationId];
+        angular.forEach(supportIds, function(supportId){
+          var support = new BelLib.Support();
+          var jdexSupport = jdex.supports[supportId];
+          support.fromJdex(supportId, jdexSupport, jdex);
+          support.p = cit;
+          cit.supports.push(support);
+        });
 
         //var edgeIds = jdex.citationEdgeMap[jdexCitationId];
 /*
         angular.forEach(edgeIds, function(jdexEdgeId){
-          console.log("edge = " + jdexEdgeId);
+          console.log('edge = ' + jdexEdgeId);
           var statement = new BelLib.Statement();
           var jdexEdge = jdex.edges[jdexEdgeId];
           statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex);
@@ -292,15 +328,15 @@ angular.module('belPlus2App')
         this.text = jdexSupport.text;
         var sup = this;
 
-        console.log('sup: ' + typeof(jdexSupportId) + jdexSupportId + ' ' + sup.text );
+        console.log('sup: ' + typeof(jdexSupportId) + jdexSupportId + ' ' + sup.text + ' ' + jdex.name);
 
-
+/*
         // find the edges that reference the support id
         // add each edge as a statement
         angular.forEach(jdex.edges, function (jdexEdge, jdexEdgeId) {
           console.log(jdexEdge.supportIds);
           if (jdexEdge.supportIds.indexOf(jdexSupportId) !== -1) {
-            console.log("stmt from edge: " + jdexEdgeId);
+            //console.log('stmt from edge: ' + jdexEdgeId);
             //var statement = new BelLib.Statement();
             //statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex, edgeIds);
             //statement.p = sup;
@@ -308,7 +344,7 @@ angular.module('belPlus2App')
             //sup.statements.push(statement);
           }
         });
-
+*/
         /*
         // find the nodes that reference the support id
         // add each node as a statement
@@ -545,6 +581,7 @@ angular.module('belPlus2App')
       console.log('got network ' + editor.network.name);
       console.log('about to load bel model from ' + editor.network.name);
       cm.fromJdex(editor.network);
+      $scope.editor.model = cm;
     };
 
     getSummary(getNetwork(buildModel));
