@@ -330,6 +330,18 @@ angular.module('belPlus2App')
 
         console.log('sup: ' + typeof(jdexSupportId) + jdexSupportId + ' ' + sup.text + ' ' + jdex.name);
 
+        var jdexEdgeIds = jdex.supportEdgeMap[jdexSupportId];
+
+        if (jdexEdgeIds){
+          angular.forEach(jdexEdgeIds, function (jdexEdgeId) {
+            var jdexEdge = jdex.edges[jdexEdgeId];
+            var statement = new BelLib.Statement();
+            statement.fromJdexEdge(jdexEdgeId, jdexEdge, jdex);
+            statement.p = sup;
+            sup.statements.push(statement);
+          });
+        }
+
 /*
         // find the edges that reference the support id
         // add each edge as a statement
@@ -404,6 +416,26 @@ angular.module('belPlus2App')
         this.s = BelLib.functionTermFromJdexNodeId(jdexNodeId, jdex);
         this.props = BelLib.propertiesFromJdex(jdexNode.properties);
         nodeIds.push(jdexNodeId);
+      },
+
+      toString: function(){
+        var subjectString, relationshipString, objectString;
+        if (this.s){
+          subjectString = this.s.toString();
+        } else {
+          subjectString = 'missing';
+        }
+        if (this.r){
+          relationshipString = this.r.toString();
+        } else {
+          relationshipString = 'missing';
+        }
+        if (this.o){
+          objectString = this.o.toString();
+        } else {
+          objectString = 'missing';
+        }
+        return subjectString + ' ' + relationshipString +  ' ' + objectString;
       }
     };
 
@@ -438,11 +470,11 @@ angular.module('belPlus2App')
 
       fromJdex: function (jdexFunctionTerm, jdex) {
         var functionId = jdexFunctionTerm.functionTermId;
-        var parameterIds = jdexFunctionTerm.functionTermId;
+        var parameterIds = jdexFunctionTerm.parameterIds;
         this.function = BelLib.termFromJdexBaseTermId(functionId, jdex);
         var params = this.parameters;
         angular.forEach(parameterIds, function(id){
-          var p = BelLib.termFromJdexTermId(id);
+          var p = BelLib.objectFromJdexTermId(id, jdex);
           params.push(p);
         });
 
@@ -462,6 +494,15 @@ angular.module('belPlus2App')
 
       identifier: function () {
         return BelLib.functionTermIdentifier(this.termFunction, this.parameters);
+      },
+
+      toString: function(){
+        var functionString = this.function.toString();
+        var pStrings = [];
+        angular.forEach(this.parameters, function(param){
+          pStrings.push(param.toString());
+        });
+        return functionString + '(' + pStrings.join(',') + ')';
       }
 
     };
@@ -469,18 +510,15 @@ angular.module('belPlus2App')
     BelLib.functionTermFromJdexNodeId = function (jdexNodeId, jdex) {
       // get the node
       var jdexNode = jdex.nodes[jdexNodeId];
-      // get the represented term and check that it is a function term
+      // get the represented term id and find a function term
       if (jdexNode.represents) {
-        var jdexFunctionTermId = jdex.functionTerms[jdexNode.represents];
-        if (jdexFunctionTermId) {
-          return BelLib.functionTermFromJdexTermId(jdexFunctionTermId, jdex);
-        }
+        return BelLib.objectFromJdexTermId(jdexNode.represents, jdex);
       }
       return null;
     };
 
     BelLib.functionTermFromJdexTermId = function(jdexTermId, jdex){
-      var jdexFunctionTerm = jdex.functionTerms.jdexTermId;
+      var jdexFunctionTerm = jdex.functionTerms[jdexTermId];
       if (jdexFunctionTerm){
         var functionTerm = new BelLib.FunctionTerm();
         // create a function term and populate it from jdex
@@ -518,22 +556,37 @@ angular.module('belPlus2App')
 
       setName: function (string) {
         this.name = string;
+      },
+
+      toString: function(){
+        if (this.prefix){
+          return this.prefix + ':' + this.name;
+        } else {
+          return this.name;
+        }
+
       }
 
 
     };
 
     BelLib.objectFromJdexTermId = function(jdexTermId, jdex){
-      var object = BelLib.termFromJdexBaseTermId(jdexTermId, jdex);
-      if (object){
+      try {
+        var object = BelLib.termFromJdexBaseTermId(jdexTermId, jdex);
+        if (object){
+          return object;
+        }
+        object = BelLib.functionTermFromJdexTermId(jdexTermId, jdex);
+        if (object){
+          return object;
+        }
+        object = BelLib.statementFromJdexTermId(jdexTermId, jdex);
         return object;
       }
-      object = BelLib.functionTermFromJdexTermId(jdexTermId, jdex);
-      if (object){
-        return object;
+      catch (err){
+        console.log(err);
+        return 'error';
       }
-      object = BelLib.statementFromJdexTermId(jdexTermId, jdex);
-      return object;
     };
 
     BelLib.termFromJdexBaseTermId = function (jdexBaseTermId, jdex) {
@@ -550,6 +603,10 @@ angular.module('belPlus2App')
         }
       }
       return term;
+    };
+
+    BelLib.statementFromJdexTermId = function(jdexTermId, jdex){
+      console.log('reified edge term ' + jdexTermId + ' ' + jdex.name);
     };
 
 

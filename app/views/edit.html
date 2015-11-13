@@ -4,7 +4,7 @@
   <ul ng-repeat="support in citation.supports">
     <p>{{support.text}}</p>
     <ul ng-repeat="statement in support.statements">
-      <p></p>
+      <p>{{statement.toString()}}</p>
       </ul>
   </ul>
 </ul>
