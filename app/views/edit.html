@@ -1,4 +1,35 @@
 <p>Citations for {{editor.networkId}}</p>
+<div class="checkbox">
+  <label>
+    <input type="checkbox" ng-model="oneAtATime">
+    Open only one at a time
+  </label>
+</div>
+<uib-accordion close-others="oneAtATime">
+  <uib-accordion-group heading="Static Header, initially expanded" is-open="true" is-disabled="false">
+    This content is straight in the template.
+  </uib-accordion-group>
+  <uib-accordion-group heading="Another Static Header, initially closed" is-open="false" is-disabled="false">
+    This content is straight in the template.
+  </uib-accordion-group>
+</uib-accordion>
+
+<uib-accordion close-others="oneAtATime">
+  <uib-accordion-group
+    heading="{{citation.identifier}}"
+   
+    ng-repeat="citation in editor.model.citations">
+    <div ng-repeat="support in citation.supports">
+      <p>{{support.text}}</p>
+
+      <div ng-repeat="statement in support.statements">
+        <p>{{statement.toString()}}</p>
+      </div>
+    </div>
+  </uib-accordion-group>
+</uib-accordion>
+
+<!--
 <ul ng-repeat="citation in editor.model.citations">
   <p>{{citation.identifier}}</p>
   <ul ng-repeat="support in citation.supports">
@@ -8,3 +39,4 @@
       </ul>
   </ul>
 </ul>
+-->

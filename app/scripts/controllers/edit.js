@@ -17,6 +17,7 @@ angular.module('belPlus2App')
 
     $scope.editor = {};
     $scope.foo = 'this is foo';
+    $scope.oneAtATime = false;
 
     var editor = $scope.editor;
     editor.queryErrors = [];
@@ -171,6 +172,7 @@ angular.module('belPlus2App')
       this.type = null;
       this.uri = '';
       this.identifier = '';
+      this.isOpen = false;
     };
 
     BelLib.Citation.prototype = {
@@ -595,10 +597,14 @@ angular.module('belPlus2App')
       if (jdexTerm) {
         term = new BelLib.Term();
         term.name = jdexTerm.name;
-        if (jdexTerm.namespaceId) {
+        if (jdexTerm.namespaceId && jdexTerm.namespaceId !== -1) {
           var namespace = jdex.namespaces[jdexTerm.namespaceId];
-          if (namespace.prefix) {
-            term.prefix = namespace.prefix;
+          if (namespace) {
+            if (namespace.prefix) {
+              term.prefix = namespace.prefix;
+            }
+          } else {
+            console.log('namespace is null id ' + jdexTerm.namespaceId + ' for term ' + term.name);
           }
         }
       }
