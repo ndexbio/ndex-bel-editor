@@ -13,7 +13,7 @@ cn = {};
 cm = {};
 
 angular.module('belPlus2App')
-  .controller('EditCtrl', ['ndexService', '$routeParams', '$scope', function (ndexService, $routeParams, $scope) {
+  .controller('EditCtrl', ['ndexService', '$routeParams', '$scope', '$http', function (ndexService, $routeParams, $scope, $http) {
 
     $scope.editor = {};
     $scope.foo = 'this is foo';
@@ -25,6 +25,7 @@ angular.module('belPlus2App')
     editor.network = {};
     editor.networkSummary = {};
     if (!editor.networkId) {
+      // 85e2ada9-8bfd-11e5-b435-06603eb7f303
       editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
       //editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb'; // small corpus
     }
@@ -34,7 +35,6 @@ angular.module('belPlus2App')
     console.log('in edit.js');
 
     console.log(editor);
-
 
 
     var BelLib = {};
@@ -133,8 +133,10 @@ angular.module('belPlus2App')
       this.statements = [];
       this.type = null;
       this.uri = '';
+      this.title = null;
+      this.contributors = [];
       this.identifier = '';
-      this.isOpen = false;
+      this.selected = false;
     };
 
     BelLib.Citation.prototype = {
@@ -158,6 +160,22 @@ angular.module('belPlus2App')
         support.p = this;
       },
 
+      getAbstract: function () {
+        if (this.identifier && this.identifier.indexOf('pmid:') === 0) {
+          var pmid = this.identifier.substring('pmid'.length);
+          var abstractUrl = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=text&rettype=abstract&id=' + pmid;
+          var cit = this;
+          $http.get(abstractUrl).then(
+            function (response) {
+              cit.abstract = response.data;
+            },
+            function (error) {
+              editor.queryErrors.push(error);
+            });
+
+        }
+      },
+
       fromJdex: function (jdexCitationId, jdexCitation, jdex) {
         // add the properties from the jdexCitation
 
@@ -167,6 +185,13 @@ angular.module('belPlus2App')
         this.type = jdexCitation.type;
         this.uri = jdexCitation.uri;
         this.identifier = jdexCitation.identifier;
+        this.title = jdexCitation.title;
+        var contribs = this.contributors;
+        if (jdexCitation.contributors) {
+          angular.forEach(jdexCitation.contributors, function (contributor) {
+            contribs.push(contributor);
+          });
+        }
         var cit = this;
 
         console.log('citation: ' + jdexCitationId + ' ' + cit.identifier + ' ' + jdex.name);
@@ -551,7 +576,7 @@ angular.module('belPlus2App')
 
     };
 
-    BelLib.abbreviate = function(string){
+    BelLib.abbreviate = function (string) {
       switch (string) {
         case 'abundance':
           return 'a';
@@ -681,7 +706,6 @@ angular.module('belPlus2App')
     };
 
 
-
     var getNetwork = function (callback) {
       ndexService.getCompleteNetwork(editor.networkId)
         .success(
@@ -709,19 +733,19 @@ angular.module('belPlus2App')
     };
 
     ndexService.getNetworkSummary(editor.networkId)
-        .success(
-        function (networkSummary) {
-          cns = networkSummary;
-          editor.queryErrors = [];
-          editor.networkSummary = networkSummary;
-          console.log('success for networkSummary = ' + editor.networkSummary.name);
-          getNetwork(buildModel);
-        }
-      ).error(
-        function (error) {
-          editor.queryErrors.push(error.data.message);
-        }
-      );
+      .success(
+      function (networkSummary) {
+        cns = networkSummary;
+        editor.queryErrors = [];
+        editor.networkSummary = networkSummary;
+        console.log('success for networkSummary = ' + editor.networkSummary.name);
+        getNetwork(buildModel);
+      }
+    ).error(
+      function (error) {
+        editor.queryErrors.push(error);
+      }
+    );
 
   }])
 ;

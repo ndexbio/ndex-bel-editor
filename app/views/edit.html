@@ -1,21 +1,21 @@
 <p>Citations for {{editor.networkId}}</p>
-<div class="checkbox">
-  <label>
-    <input type="checkbox" ng-model="oneAtATime">
-    Open only one at a time
-  </label>
-</div>
+<p>On NDEx Server {{editor.ndexUri}}</p>
 
 
-<uib-accordion close-others="oneAtATime">
+
+<uib-accordion>
   <uib-accordion-group
-    heading="{{citation.identifier}}"
+    heading="{{citation.title || citation.identifier}}"
 
     ng-repeat="citation in editor.model.citations">
+    <p>{{citation.identifier}}</p>
+    <span ng-repeat='author in citation.contributors'>{{author}}  </span>
+    <p ng-show='citation.abstract'>{{citation.abstract}}</p>
+    <p ng-hide="citation.abstract"><a ng-click='citation.getAbstract()'>get abstract</a></p>
 
 
     <uib-accordion>
-      <uib-accordion-group ng-repeat="support in citation.supports">
+      <uib-accordion-group ng-repeat='support in citation.supports'>
         <uib-accordion-heading>
           {{ '(' + support.statements.length + ') ' + support.shortText()}}
           <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
@@ -31,6 +31,13 @@
 </uib-accordion>
 
 <!--
+
+<div class="checkbox">
+  <label>
+    <input type="checkbox" ng-model="oneAtATime">
+    Open only one at a time
+  </label>
+</div>
 
 <uib-accordion close-others="oneAtATime">
   <uib-accordion-group heading="Static Header, initially expanded" is-open="true" is-disabled="false">
