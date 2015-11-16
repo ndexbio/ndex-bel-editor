@@ -25,7 +25,8 @@ angular.module('belPlus2App')
     editor.network = {};
     editor.networkSummary = {};
     if (!editor.networkId) {
-      editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb';
+      editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
+      //editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb'; // small corpus
     }
 
     editor.ndexUri = ndexService.getNdexServerUri();
@@ -34,42 +35,6 @@ angular.module('belPlus2App')
 
     console.log(editor);
 
-    var getSummary = function (callback) {
-      ndexService.getNetworkSummary(editor.networkId)
-        .success(
-        function (networkSummary) {
-          cns = networkSummary;
-          editor.queryErrors = [];
-          editor.networkSummary = networkSummary;
-          console.log('success for networkSummary = ' + editor.networkSummary.name);
-          callback();
-        }
-      ).error(
-        function (error) {
-          editor.queryErrors.push(error.data.message);
-
-        }
-      );
-
-
-    };
-
-    var getNetwork = function (callback) {
-      ndexService.getCompleteNetwork(editor.networkId)
-        .success(
-        function (network) {
-          cn = network;
-          editor.queryErrors = [];
-          editor.network = network;
-          callback();
-        }
-      ).error(
-        function (error) {
-          editor.queryErrors.push(error.data.message);
-
-        }
-      );
-    };
 
 
     var BelLib = {};
@@ -715,6 +680,25 @@ angular.module('belPlus2App')
       }
     };
 
+
+
+    var getNetwork = function (callback) {
+      ndexService.getCompleteNetwork(editor.networkId)
+        .success(
+        function (network) {
+          cn = network;
+          editor.queryErrors = [];
+          editor.network = network;
+          callback();
+        }
+      ).error(
+        function (error) {
+          editor.queryErrors.push(error.data.message);
+
+        }
+      );
+    };
+
     var buildModel = function () {
       cm = new BelLib.Model();
       console.log('got summary ' + editor.networkSummary.name);
@@ -724,8 +708,20 @@ angular.module('belPlus2App')
       $scope.editor.model = cm;
     };
 
-    getSummary(getNetwork(buildModel));
-
+    ndexService.getNetworkSummary(editor.networkId)
+        .success(
+        function (networkSummary) {
+          cns = networkSummary;
+          editor.queryErrors = [];
+          editor.networkSummary = networkSummary;
+          console.log('success for networkSummary = ' + editor.networkSummary.name);
+          getNetwork(buildModel);
+        }
+      ).error(
+        function (error) {
+          editor.queryErrors.push(error.data.message);
+        }
+      );
 
   }])
 ;
