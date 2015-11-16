@@ -13,7 +13,7 @@ cn = {};
 cm = {};
 
 angular.module('belPlus2App')
-  .controller('EditCtrl', ['ndexService', '$routeParams', '$scope',  function (ndexService, $routeParams, $scope) {
+  .controller('EditCtrl', ['ndexService', '$routeParams', '$scope', function (ndexService, $routeParams, $scope) {
 
     $scope.editor = {};
     $scope.foo = 'this is foo';
@@ -54,7 +54,7 @@ angular.module('belPlus2App')
 
     };
 
-    var getNetwork = function(callback){
+    var getNetwork = function (callback) {
       ndexService.getCompleteNetwork(editor.networkId)
         .success(
         function (network) {
@@ -72,12 +72,9 @@ angular.module('belPlus2App')
     };
 
 
-
-
     var BelLib = {};
 
     BelLib.debug = null;
-
 
 
     /*
@@ -115,18 +112,18 @@ angular.module('belPlus2App')
         //var edgeIds = Object.keys(jdex.edges);
         var citationEdgeMap = {};
         var supportEdgeMap = {};
-        angular.forEach(jdex.edges, function(jdexEdge, jdexEdgeId){
-          angular.forEach(jdexEdge.citationIds, function(citationId){
+        angular.forEach(jdex.edges, function (jdexEdge, jdexEdgeId) {
+          angular.forEach(jdexEdge.citationIds, function (citationId) {
             var entry = citationEdgeMap[citationId];
-            if (!entry){
+            if (!entry) {
               entry = [];
               citationEdgeMap[citationId] = entry;
             }
             entry.push(jdexEdgeId);
           });
-          angular.forEach(jdexEdge.supportIds, function(supportId){
+          angular.forEach(jdexEdge.supportIds, function (supportId) {
             var entry = supportEdgeMap[supportId];
-            if (!entry){
+            if (!entry) {
               entry = [];
               supportEdgeMap[supportId] = entry;
             }
@@ -135,11 +132,11 @@ angular.module('belPlus2App')
         });
         console.log('computed citationEdgeMap and supportEdgeMap');
         var citationSupportMap = {};
-        angular.forEach(jdex.supports, function(jdexSupport, jdexSupportId){
+        angular.forEach(jdex.supports, function (jdexSupport, jdexSupportId) {
           var citationId = jdexSupport.citationId;
-          if (citationId){
+          if (citationId) {
             var entry = citationSupportMap[citationId];
-            if (!entry){
+            if (!entry) {
               entry = [];
               citationSupportMap[citationId] = entry;
             }
@@ -210,7 +207,7 @@ angular.module('belPlus2App')
         console.log('citation: ' + jdexCitationId + ' ' + cit.identifier + ' ' + jdex.name);
 
         var supportIds = jdex.citationSupportMap[jdexCitationId];
-        angular.forEach(supportIds, function(supportId){
+        angular.forEach(supportIds, function (supportId) {
           var support = new BelLib.Support();
           var jdexSupport = jdex.supports[supportId];
           support.fromJdex(supportId, jdexSupport, jdex);
@@ -219,65 +216,65 @@ angular.module('belPlus2App')
         });
 
         //var edgeIds = jdex.citationEdgeMap[jdexCitationId];
-/*
-        angular.forEach(edgeIds, function(jdexEdgeId){
-          console.log('edge = ' + jdexEdgeId);
-          var statement = new BelLib.Statement();
-          var jdexEdge = jdex.edges[jdexEdgeId];
-          statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex);
-          statement.p = cit;
-          cit.statements.push(statement);
+        /*
+         angular.forEach(edgeIds, function(jdexEdgeId){
+         console.log('edge = ' + jdexEdgeId);
+         var statement = new BelLib.Statement();
+         var jdexEdge = jdex.edges[jdexEdgeId];
+         statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex);
+         statement.p = cit;
+         cit.statements.push(statement);
 
-        });
-       */
-/*
-        angular.forEach(jdex.supports, function (jdexSupport, jdexSupportId) {
+         });
+         */
+        /*
+         angular.forEach(jdex.supports, function (jdexSupport, jdexSupportId) {
 
-          if (jdexSupport.citationId == jdexCitationId) {
-            //console.log('matched ' + jdexCitationId + ' vs ' + jdexSupport.citationId);
-            var support = new BelLib.Support();
-            support.fromJdex(jdexSupportId, jdexSupport, jdex, edgeIds, nodeIds);
-            support.p = cit;
-            cit.supports.push(support);
-          }
+         if (jdexSupport.citationId == jdexCitationId) {
+         //console.log('matched ' + jdexCitationId + ' vs ' + jdexSupport.citationId);
+         var support = new BelLib.Support();
+         support.fromJdex(jdexSupportId, jdexSupport, jdex, edgeIds, nodeIds);
+         support.p = cit;
+         cit.supports.push(support);
+         }
 
-        });
-        */
-/*
-        // find the edges that reference the citation id
-        // add each edge as a statement unless it has already
-        // been handled
-        angular.forEach(jdex.edges, function (jdexEdge, jdexEdgeId) {
-          if (!edgeIds.contains(jdexEdgeId)) {
-            // this was not already handled when processing a statement
-            if (jdexEdge.citationIds.contains(jdexCitationId)) {
-              var statement = new BelLib.Statement();
-              statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex, edgeIds);
-              statement.p = cit;
-              cit.statements.push(statement);
-            }
-          }
+         });
+         */
+        /*
+         // find the edges that reference the citation id
+         // add each edge as a statement unless it has already
+         // been handled
+         angular.forEach(jdex.edges, function (jdexEdge, jdexEdgeId) {
+         if (!edgeIds.contains(jdexEdgeId)) {
+         // this was not already handled when processing a statement
+         if (jdexEdge.citationIds.contains(jdexCitationId)) {
+         var statement = new BelLib.Statement();
+         statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex, edgeIds);
+         statement.p = cit;
+         cit.statements.push(statement);
+         }
+         }
 
-        });
+         });
 
-        // find the nodes that reference the citation id
-        // add each node as a statement unless it has already
-        // been handled
+         // find the nodes that reference the citation id
+         // add each node as a statement unless it has already
+         // been handled
 
-        angular.forEach(jdex.nodes, function (jdexNode, jdexNodeId) {
-          if (!nodeIds.contains(jdexNodeId)) {
-            // this was not already handled when processing a support
-            if (jdexNode.citationIds.contains(jdexCitationId)) {
-              var statement = new BelLib.Statement();
-              statement.fromJdexNode = (jdexNodeId, jdexNode, jdex, nodeIds);
-              statement.p = cit;
-              cit.statements.push(statement);
-            }
-          }
+         angular.forEach(jdex.nodes, function (jdexNode, jdexNodeId) {
+         if (!nodeIds.contains(jdexNodeId)) {
+         // this was not already handled when processing a support
+         if (jdexNode.citationIds.contains(jdexCitationId)) {
+         var statement = new BelLib.Statement();
+         statement.fromJdexNode = (jdexNodeId, jdexNode, jdex, nodeIds);
+         statement.p = cit;
+         cit.statements.push(statement);
+         }
+         }
 
-        });
+         });
 
- */
+         */
       },
 
       toJdex: function () {
@@ -320,6 +317,18 @@ angular.module('belPlus2App')
         this.text = text;
       },
 
+      shortText: function () {
+        if (this.text) {
+          if (this.text.length <= 70) {
+            return this.text;
+          } else {
+            return this.text.substring(0, 69) + '...';
+          }
+        } else {
+          return '<no text>';
+        }
+      },
+
       addStatement: function (statement) {
         this.statements.push(statement);
         statement.p = this;
@@ -334,7 +343,7 @@ angular.module('belPlus2App')
 
         var jdexEdgeIds = jdex.supportEdgeMap[jdexSupportId];
 
-        if (jdexEdgeIds){
+        if (jdexEdgeIds) {
           angular.forEach(jdexEdgeIds, function (jdexEdgeId) {
             var jdexEdge = jdex.edges[jdexEdgeId];
             var statement = new BelLib.Statement();
@@ -344,33 +353,33 @@ angular.module('belPlus2App')
           });
         }
 
-/*
-        // find the edges that reference the support id
-        // add each edge as a statement
-        angular.forEach(jdex.edges, function (jdexEdge, jdexEdgeId) {
-          console.log(jdexEdge.supportIds);
-          if (jdexEdge.supportIds.indexOf(jdexSupportId) !== -1) {
-            //console.log('stmt from edge: ' + jdexEdgeId);
-            //var statement = new BelLib.Statement();
-            //statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex, edgeIds);
-            //statement.p = sup;
-
-            //sup.statements.push(statement);
-          }
-        });
-*/
         /*
-        // find the nodes that reference the support id
-        // add each node as a statement
-        angular.forEach(jdex.nodes, function (jdexNode, jdexNodeId) {
-          if (jdexNode.supportIds.includes(jdexSupportId)) {
-            var statement = new BelLib.Statement();
-            statement.fromJdexNode = (jdexNodeId, jdexNode, jdex, nodeIds);
-            statement.p = sup;
-            sup.statements.push(statement);
-          }
-        });
-*/
+         // find the edges that reference the support id
+         // add each edge as a statement
+         angular.forEach(jdex.edges, function (jdexEdge, jdexEdgeId) {
+         console.log(jdexEdge.supportIds);
+         if (jdexEdge.supportIds.indexOf(jdexSupportId) !== -1) {
+         //console.log('stmt from edge: ' + jdexEdgeId);
+         //var statement = new BelLib.Statement();
+         //statement.fromJdexEdge = (jdexEdgeId, jdexEdge, jdex, edgeIds);
+         //statement.p = sup;
+
+         //sup.statements.push(statement);
+         }
+         });
+         */
+        /*
+         // find the nodes that reference the support id
+         // add each node as a statement
+         angular.forEach(jdex.nodes, function (jdexNode, jdexNodeId) {
+         if (jdexNode.supportIds.includes(jdexSupportId)) {
+         var statement = new BelLib.Statement();
+         statement.fromJdexNode = (jdexNodeId, jdexNode, jdex, nodeIds);
+         statement.p = sup;
+         sup.statements.push(statement);
+         }
+         });
+         */
       }
     };
 
@@ -420,24 +429,24 @@ angular.module('belPlus2App')
         nodeIds.push(jdexNodeId);
       },
 
-      toString: function(){
+      toString: function (mode) {
         var subjectString, relationshipString, objectString;
-        if (this.s){
-          subjectString = this.s.toString();
+        if (this.s) {
+          subjectString = this.s.toString(mode);
         } else {
           subjectString = 'missing';
         }
-        if (this.r){
-          relationshipString = this.r.toString();
+        if (this.r) {
+          relationshipString = this.r.toString(mode);
         } else {
           relationshipString = 'missing';
         }
-        if (this.o){
-          objectString = this.o.toString();
+        if (this.o) {
+          objectString = this.o.toString(mode);
         } else {
           objectString = 'missing';
         }
-        return subjectString + ' ' + relationshipString +  ' ' + objectString;
+        return subjectString + ' ' + relationshipString + ' ' + objectString;
       }
     };
 
@@ -475,7 +484,7 @@ angular.module('belPlus2App')
         var parameterIds = jdexFunctionTerm.parameterIds;
         this.function = BelLib.termFromJdexBaseTermId(functionId, jdex);
         var params = this.parameters;
-        angular.forEach(parameterIds, function(id){
+        angular.forEach(parameterIds, function (id) {
           var p = BelLib.objectFromJdexTermId(id, jdex);
           params.push(p);
         });
@@ -498,11 +507,11 @@ angular.module('belPlus2App')
         return BelLib.functionTermIdentifier(this.termFunction, this.parameters);
       },
 
-      toString: function(){
-        var functionString = this.function.toString();
+      toString: function (mode) {
+        var functionString = this.function.toString(mode);
         var pStrings = [];
-        angular.forEach(this.parameters, function(param){
-          pStrings.push(param.toString());
+        angular.forEach(this.parameters, function (param) {
+          pStrings.push(param.toString(mode));
         });
         return functionString + '(' + pStrings.join(',') + ')';
       }
@@ -519,9 +528,9 @@ angular.module('belPlus2App')
       return null;
     };
 
-    BelLib.functionTermFromJdexTermId = function(jdexTermId, jdex){
+    BelLib.functionTermFromJdexTermId = function (jdexTermId, jdex) {
       var jdexFunctionTerm = jdex.functionTerms[jdexTermId];
-      if (jdexFunctionTerm){
+      if (jdexFunctionTerm) {
         var functionTerm = new BelLib.FunctionTerm();
         // create a function term and populate it from jdex
         functionTerm.fromJdex(jdexFunctionTerm, jdex);
@@ -560,32 +569,100 @@ angular.module('belPlus2App')
         this.name = string;
       },
 
-      toString: function(){
-        if (this.prefix){
+      toString: function (mode) {
+        if (mode && mode === 'SHORT' &&
+          this.prefix &&
+          this.prefix === 'bel') {
+
+          return BelLib.abbreviate(this.name);
+
+        } else if (this.prefix) {
           return this.prefix + ':' + this.name;
+
         } else {
           return this.name;
         }
-
       }
-
 
     };
 
-    BelLib.objectFromJdexTermId = function(jdexTermId, jdex){
+    BelLib.abbreviate = function(string){
+      switch (string) {
+        case 'abundance':
+          return 'a';
+        case 'biologicalProcess':
+          return 'bp';
+        case 'catalyticActivity':
+          return 'cat';
+        case 'cellSecretion':
+          return 'sec';
+        case 'cellSurfaceExpression':
+          return 'surf';
+        case 'chaperoneActivity':
+          return 'chap';
+        case 'complexAbundance':
+          return 'complex';
+        case 'compositeAbundance':
+          return 'composite';
+        case 'degradation':
+          return 'deg';
+        case 'fusion':
+          return 'fus';
+        case 'geneAbundance':
+          return 'g';
+        case 'gtpBoundActivity':
+          return 'gtp';
+        case 'kinaseActivity':
+          return 'kin';
+        case 'microRNAAbundance':
+          return 'm';
+        case 'molecularActivity':
+          return 'act';
+        case 'pathology':
+          return 'path';
+        case 'peptidaseActivity':
+          return 'pep';
+        case 'phosphateActivity':
+          return 'phos';
+        case 'proteinAbundance':
+          return 'p';
+        case 'proteinModification':
+          return 'pmod';
+        case 'reaction':
+          return 'rxn';
+        case 'ribosylationActivity':
+          return 'ribo';
+        case 'rnaAbundance':
+          return 'r';
+        case 'substitution':
+          return 'sub';
+        case 'translocation':
+          return 'tloc';
+        case 'transcriptionalActivity':
+          return 'tscript';
+        case 'transportActivity':
+          return 'tport';
+        case 'truncation':
+          return 'trunc';
+        default:
+          return string;
+      }
+    };
+
+    BelLib.objectFromJdexTermId = function (jdexTermId, jdex) {
       try {
         var object = BelLib.termFromJdexBaseTermId(jdexTermId, jdex);
-        if (object){
+        if (object) {
           return object;
         }
         object = BelLib.functionTermFromJdexTermId(jdexTermId, jdex);
-        if (object){
+        if (object) {
           return object;
         }
         object = BelLib.statementFromJdexTermId(jdexTermId, jdex);
         return object;
       }
-      catch (err){
+      catch (err) {
         console.log(err);
         return 'error';
       }
@@ -611,7 +688,7 @@ angular.module('belPlus2App')
       return term;
     };
 
-    BelLib.statementFromJdexTermId = function(jdexTermId, jdex){
+    BelLib.statementFromJdexTermId = function (jdexTermId, jdex) {
       console.log('reified edge term ' + jdexTermId + ' ' + jdex.name);
     };
 
@@ -638,7 +715,7 @@ angular.module('belPlus2App')
       }
     };
 
-    var buildModel = function(){
+    var buildModel = function () {
       cm = new BelLib.Model();
       console.log('got summary ' + editor.networkSummary.name);
       console.log('got network ' + editor.network.name);
@@ -650,4 +727,5 @@ angular.module('belPlus2App')
     getSummary(getNetwork(buildModel));
 
 
-  }]);
+  }])
+;

@@ -5,6 +5,33 @@
     Open only one at a time
   </label>
 </div>
+
+
+<uib-accordion close-others="oneAtATime">
+  <uib-accordion-group
+    heading="{{citation.identifier}}"
+
+    ng-repeat="citation in editor.model.citations">
+
+
+    <uib-accordion>
+      <uib-accordion-group ng-repeat="support in citation.supports">
+        <uib-accordion-heading>
+          {{ '(' + support.statements.length + ') ' + support.shortText()}}
+          <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
+        </uib-accordion-heading>
+        <p>{{support.text}}</p>
+        <div ng-repeat="statement in support.statements">
+          <p>{{statement.toString('SHORT')}}</p>
+        </div>
+      </uib-accordion-group>
+    </uib-accordion>
+
+  </uib-accordion-group>
+</uib-accordion>
+
+<!--
+
 <uib-accordion close-others="oneAtATime">
   <uib-accordion-group heading="Static Header, initially expanded" is-open="true" is-disabled="false">
     This content is straight in the template.
@@ -14,22 +41,6 @@
   </uib-accordion-group>
 </uib-accordion>
 
-<uib-accordion close-others="oneAtATime">
-  <uib-accordion-group
-    heading="{{citation.identifier}}"
-   
-    ng-repeat="citation in editor.model.citations">
-    <div ng-repeat="support in citation.supports">
-      <p>{{support.text}}</p>
-
-      <div ng-repeat="statement in support.statements">
-        <p>{{statement.toString()}}</p>
-      </div>
-    </div>
-  </uib-accordion-group>
-</uib-accordion>
-
-<!--
 <ul ng-repeat="citation in editor.model.citations">
   <p>{{citation.identifier}}</p>
   <ul ng-repeat="support in citation.supports">
