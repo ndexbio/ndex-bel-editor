@@ -32,6 +32,10 @@ angular.module('belPlus2App')
 
     editor.ndexUri = ndexService.getNdexServerUri();
 
+    editor.handleCheckboxClick = function(citation){
+      console.log('citation checkbox click ' + citation.identifier);
+    };
+
     console.log('in edit.js');
 
     console.log(editor);
@@ -722,6 +726,8 @@ angular.module('belPlus2App')
         }
       );
     };
+
+
 
     var buildModel = function () {
       cm = new BelLib.Model();

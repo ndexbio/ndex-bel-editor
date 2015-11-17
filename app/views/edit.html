@@ -4,11 +4,14 @@
 
 
 <uib-accordion>
-  <uib-accordion-group
-    heading="{{citation.title || citation.identifier}}"
+  <uib-accordion-group ng-repeat="citation in editor.model.citations">
 
-    ng-repeat="citation in editor.model.citations">
-    <p>{{citation.identifier}}</p>
+    <uib-accordion-heading>
+
+      {{citation.title || citation.identifier}}
+    </uib-accordion-heading>
+    <p><input type="checkbox"
+              ng-model='citation.selected'>{{citation.identifier}}</p>
     <span ng-repeat='author in citation.contributors'>{{author}}  </span>
     <p ng-show='citation.abstract'>{{citation.abstract}}</p>
     <p ng-hide="citation.abstract"><a ng-click='citation.getAbstract()'>get abstract</a></p>
