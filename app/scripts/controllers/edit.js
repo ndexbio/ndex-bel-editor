@@ -26,8 +26,8 @@ angular.module('belPlus2App')
     editor.networkSummary = {};
     if (!editor.networkId) {
       // 85e2ada9-8bfd-11e5-b435-06603eb7f303
-      editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
-      //editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb'; // small corpus
+      //editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
+      editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb'; // small corpus
     }
 
     editor.ndexUri = ndexService.getNdexServerUri();
@@ -125,7 +125,107 @@ angular.module('belPlus2App')
           citation.fromJdex(jdexCitationId, jdexCitation, jdex);
           model.citations.push(citation);
         });
+      },
+
+      toCX: function(){
+        var cx = new BelLib.CX();
+        angular.forEach(this.namespaces, function(namespace) {
+          cx.addNamespace(namespace);
+
+        });
+        angular.forEach(this.citations, function (citation) {
+          if (citation.selected){
+            console.log('citation to CX: ' + citation.identifier);
+            cx.addCitation(citation);
+          }
+
+        });
+
+        return cx.toString();
       }
+    };
+
+    BelLib.CX = function (){
+      this.fragments = [];
+      this.functionTermNodeIdMap = {};
+      this.nodeIdCounter = 0;
+      this.edgeIdCounter = 0;
+      this.citationIdCounter = 0;
+      this.supportIdCounter = 0;
+
+    };
+
+    BelLib.CX.prototype = {
+
+      constructor: BelLib.CX,
+
+      addCitation: function(citation){
+        var cxCitationId = this.emitCitation(citation);
+        angular.forEach(citation.supports, function(support){
+          this.addSupport(cxCitationId, support)
+        });
+
+      },
+
+      addNamespace: function(namespace){
+        this.emitContext(namespace.prefix, namespace.uri);
+      },
+
+      addSupport: function(cxCitationId, support){
+        var cxSupportId = this.emitSupport(cxCitationId, support.text);
+        angular.forEach(support.statements, function(statement){
+
+        });
+
+      },
+
+      addStatement: function(statement){
+        // case: subject only statement
+
+        // case: subject - object statement
+      },
+
+      emitCitation: function(citation){
+        var body = {};
+        emitFragment('Citations', body);
+      },
+
+      emitSupport: function(support){
+        var body = {"text" : support.text};
+        emitFragment('Supports', body);
+
+      },
+
+      emitEdge: function(){
+        var body = {};
+        emitFragment('Edges', body);
+      },
+
+      emitEdgeProperty: function(edgeId, name, value){
+        var body = {};
+        emitFRagment('EdgeProperties', body);
+      },
+
+      emitNode: function(nodeId, nodeName){
+        var body = {};
+        emitFragment('Nodes', body);
+      },
+
+      emitNodeProperty: function(nodeId, name, value){
+        var body = {};
+        emitFragment('NodeProperties', body);
+      },
+
+
+
+
+
+      link
+
+      addFragment: function(aspectName, body){
+
+      }
+
     };
 
     /*------------------------------------------------
