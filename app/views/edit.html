@@ -1,6 +1,5 @@
-<p>Citations for {{editor.networkId}}</p>
+<p ng-show="editor.networkSummary">Citations for {{editor.networkSummary.name}}</p>
 <p>On NDEx Server {{editor.ndexUri}}</p>
-
 
 
 <uib-accordion>
@@ -13,7 +12,9 @@
     <p><input type="checkbox"
               ng-model='citation.selected'>{{citation.identifier}}</p>
     <span ng-repeat='author in citation.contributors'>{{author}}  </span>
+
     <p ng-show='citation.abstract'>{{citation.abstract}}</p>
+
     <p ng-hide="citation.abstract"><a ng-click='citation.getAbstract()'>get abstract</a></p>
 
 
@@ -21,11 +22,28 @@
       <uib-accordion-group ng-repeat='support in citation.supports'>
         <uib-accordion-heading>
           {{ '(' + support.statements.length + ') ' + support.shortText()}}
-          <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
+          <i class="pull-right glyphicon"
+             ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
         </uib-accordion-heading>
         <p>{{support.text}}</p>
+
         <div ng-repeat="statement in support.statements">
-          <p><b>{{statement.toString('SHORT')}}</b></p>
+          <p>
+            <b>{{statement.s.toString('SHORT')}}</b>
+          <div class="btn-group" dropdown>
+            <button id="editPredicateButton" type="button"
+                    class="btn btn-primary dropdown-toggle customButtonWidth" data-toggle="dropdown">
+              {{statement.r.toString('SHORT')}}
+            </button>
+
+            <ul class="dropdown-menu" role="menu" aria-labelledby="editPredicateButton">
+              <li>foo</li>
+              <li>bar</li>
+              <li>baz</li>
+            </ul>
+          </div>
+            <b>{{statement.o.toString('SHORT')}}</b>
+          </p>
         </div>
       </uib-accordion-group>
     </uib-accordion>

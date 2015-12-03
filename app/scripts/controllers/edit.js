@@ -24,6 +24,16 @@ angular.module('belPlus2App')
     editor.networkId = $routeParams.networkId;
     editor.network = {};
     editor.networkSummary = {};
+    editor.predicates = {
+      'increases': '->',
+      'decreases' : '-|'
+    };
+    editor.getPredicates = function(){
+      return Object.keys(editor.predicates);
+    };
+    editor.getPredicateAbbrev = function(predicate){
+      return editor.predicates[predicate];
+    };
     if (!editor.networkId) {
       // 85e2ada9-8bfd-11e5-b435-06603eb7f303
       //editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
@@ -32,7 +42,7 @@ angular.module('belPlus2App')
 
     editor.ndexUri = ndexService.getNdexServerUri();
 
-    editor.handleCheckboxClick = function(citation){
+    editor.handleCheckboxClick = function (citation) {
       console.log('citation checkbox click ' + citation.identifier);
     };
 
@@ -127,26 +137,32 @@ angular.module('belPlus2App')
         });
       },
 
-      toCX: function(){
+      toCX: function () {
         var cx = new BelLib.CX();
-        angular.forEach(this.namespaces, function(namespace) {
-          cx.addNamespace(namespace);
+
+        cx.start();
+
+        angular.forEach(this.namespaces, function (namespace) {
+          cx.outputNamespace(namespace);
 
         });
+
         angular.forEach(this.citations, function (citation) {
-          if (citation.selected){
+          if (citation.selected) {
             console.log('citation to CX: ' + citation.identifier);
-            cx.addCitation(citation);
+            cx.outputCitation(citation);
           }
-
         });
 
-        return cx.toString();
+        cx.end();
+
+        return cx.toJSON();
       }
     };
 
-    BelLib.CX = function (){
-      this.fragments = [];
+    BelLib.CX = function (model) {
+      this.model = model;
+      this.output = [];
       this.functionTermNodeIdMap = {};
       this.nodeIdCounter = 0;
       this.edgeIdCounter = 0;
@@ -155,76 +171,191 @@ angular.module('belPlus2App')
 
     };
 
+    /*
+     To output a BelLib.Model as CX, create a CX object to translate the model elements to CX
+     For each element type in the model, there is an 'output' method - but to use the CX object,
+     one only needs to call the following:
+     - myCX.start()
+     [create pre-metadata]
+
+     - myCX.outputNamespace(namespace)   <repeat for all namespaces>
+     - myCX.outputCitation(citation)     <repeat for all selected citations>
+
+     - myCX.end()
+     [create post-metadata]
+     - myCX.toString()
+     [return string to be streamed]
+
+     Internal methods correspond to CX aspects.
+     For each aspect required by BEL, there is a method to output an aspect element as a fragment
+     These methods all have the form 'emitCXFoo' where 'Foo' is the aspect type
+     */
     BelLib.CX.prototype = {
 
       constructor: BelLib.CX,
 
-      addCitation: function(citation){
-        var cxCitationId = this.emitCitation(citation);
-        angular.forEach(citation.supports, function(support){
-          this.addSupport(cxCitationId, support)
+      start: function () {
+        this.emitNumberVerification();
+        this.emitPreMetadata();
+
+      },
+
+      end: function () {
+        this.emitCXContext();
+        this.emitPostMetadata();
+
+      },
+
+      toJSON: function () {
+        return angular.toJson(this.output);
+      },
+
+      outputCitation: function (citation) {
+        var cxCitationId = this.emitCXCitation(citation.type, citation.uri, citation.title, citation.contributors, citation.identifier, citation.description);
+        angular.forEach(citation.supports, function (support) {
+          this.outputSupport(cxCitationId, support);
         });
 
       },
 
-      addNamespace: function(namespace){
-        this.emitContext(namespace.prefix, namespace.uri);
+      outputNamespace: function (namespace) {
+        this.addCXContext(namespace.prefix, namespace.uri);
       },
 
-      addSupport: function(cxCitationId, support){
-        var cxSupportId = this.emitSupport(cxCitationId, support.text);
-        angular.forEach(support.statements, function(statement){
-
+      outputSupport: function (cxCitationId, support) {
+        var cxSupportId = this.emitCXSupport(cxCitationId, support.text);
+        angular.forEach(support.statements, function (statement) {
+          this.outputStatement(statement, cxSupportId);
         });
 
       },
 
-      addStatement: function(statement){
+
+      outputStatement: function (statement) {
         // case: subject only statement
 
+
         // case: subject - object statement
+        var sourceId = this.outputTerm(statement.subject);
+        var targetId = this.outputTerm(statement.object);
+        var interaction = statement.relationship;
+        var edgeId = this.emitCXEdge(sourceId, targetId, interaction);
+        console.log('emitted edge ' + edgeId);
       },
 
-      emitCitation: function(citation){
-        var body = {};
-        emitFragment('Citations', body);
+      outputTerm: function (term) {
+        console.log('outputting ' + term);
       },
 
-      emitSupport: function(support){
-        var body = {"text" : support.text};
-        emitFragment('Supports', body);
+      // Accumulate Contexts
+      addCXContext: function (prefix, uri) {
+        this.contexts[prefix] = uri;
+      },
+
+      // Numeric Check
+      emitNumberVerification: function () {
+        this.output.push(
+          {
+            'numberVerification': [{
+              'longNumber': 281474976710655
+            }]
+          });
+      },
+
+      // Pre-Metadata
+      emitPreMetadata: function () {
 
       },
 
-      emitEdge: function(){
-        var body = {};
-        emitFragment('Edges', body);
+      emitPostMetadata: function () {
+
       },
 
-      emitEdgeProperty: function(edgeId, name, value){
-        var body = {};
-        emitFRagment('EdgeProperties', body);
+      // Aspect Element Methods
+
+      emitCXFragment: function (aspectName, body) {
+        this.output.push({aspectName: [body]});
       },
 
-      emitNode: function(nodeId, nodeName){
-        var body = {};
-        emitFragment('Nodes', body);
+      emitCXContext: function () {
+        this.emitCXFragment(
+          '@context',
+          [
+            this.contexts
+          ]);
       },
 
-      emitNodeProperty: function(nodeId, name, value){
-        var body = {};
-        emitFragment('NodeProperties', body);
+      emitCXCitation: function (type, title, contributors, identifier, description) {
+        this.citationIdCounter = this.citationIdCounter + 1;
+        var id = this.citationIdCounter;
+        this.emitCXFragment(
+          'citations', {
+            '@id': id,
+            'dc:title': title,
+            'dc:contributor': contributors,
+            'dc:identifier': identifier,
+            'dc:type': type,
+            'dc:description': description,
+            'attributes': []
+          });
+        return id;
       },
 
+      emitCXSupport: function (cxCitationId, text) {
+        this.supportIdCounter = this.supportIdCounter + 1;
+        var id = this.supportIdCounter;
+        this.emitCXFragment(
+          'supports', {
+            '@id': id,
+            'citation': cxCitationId,
+            'text': text,
+            'attributes': []
+          });
+        return id;
+      },
 
+      emitCXEdge: function (sourceId, targetId, interaction) {
+        this.edgeIdCounter = this.edgeIdCounter + 1;
+        var id = this.edgeIdCounter;
+        this.emitCXFragment(
+          'edges', {
+            '@id': id,
+            's': sourceId,
+            't': targetId,
+            'i': interaction
+          });
+        return id;
+      },
 
+      emitCXEdgeAttribute: function (edgeId, name, value) {
+        this.emitCXFragment(
+          'edgeAttributes', {
+            'po': edgeId,
+            'n': name,
+            'v': value
+          });
+      },
 
+      emitCXNode: function (nodeName) {
+        this.nodeIdCounter = this.nodeIdCounter + 1;
+        var id = this.nodeIdCounter;
+        this.emitCXFragment(
+          'nodes', {
+            '@id': id,
+            'name': nodeName
+          });
+        return id;
+      },
 
-      link
-
-      addFragment: function(aspectName, body){
-
+      emitCXNodeAttribute: function (nodeId, name, value) {
+        this.emitCXFragment(
+          'nodeAttributes', {
+            'po': nodeId,
+            'n': name,
+            'v': value
+          });
       }
+
 
     };
 
@@ -738,6 +869,10 @@ angular.module('belPlus2App')
           return 'tport';
         case 'truncation':
           return 'trunc';
+        case 'increases':
+          return '->';
+        case 'decreases':
+          return '-|';
         default:
           return string;
       }
@@ -826,7 +961,6 @@ angular.module('belPlus2App')
         }
       );
     };
-
 
 
     var buildModel = function () {
