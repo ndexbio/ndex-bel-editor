@@ -18,26 +18,108 @@ angular.module('belPlus2App')
     $scope.editor = {};
     $scope.foo = 'this is foo';
     $scope.oneAtATime = false;
+    $scope.draggedBaseTerm = false;
+
+    /*
+    Issues:
+      ft template list
+
+    Allowed Drag and Drop Cases:
+
+    - Relationship onto Relationship -> replace
+    - BT onto BT -> replace
+    # Func onto Func -> replace
+
+    - ft to scratchpad
+    - bt to scratchpad
+
+    - FT template onto FT -> map BTs onto a deep copy of the FT as best as we can
+        p(?) + kin(p(X)) -> p(X)
+        kin(complex(p(?), p(?)) + p(X) -> kin(complex(p(X), p(?))
+
+    - FT onto FT -> replace
+
+     */
+
+    $scope.onDropTerm = function (draggedTerm, targetTerm) {
+      if (draggedTerm && targetTerm && draggedTerm !== targetTerm) {
+        console.log('dropped term ' + draggedTerm.toString('SHORT') + ' on ' + targetTerm.toString('SHORT'));
+        if (draggedTerm instanceof BelLib.BaseTerm && targetTerm instanceof BelLib.BaseTerm) {
+          copyTerm(draggedTerm, targetTerm);
+        } else if(draggedTerm instanceof BelLib.Func && targetTerm instanceof BelLib.Func) {
+          copyTerm(draggedTerm, targetTerm);
+        } else if (draggedTerm instanceof BelLib.Relationship && targetTerm instanceof BelLib.Relationship) {
+          copyTerm(draggedTerm, targetTerm);
+        }
+      }
+    };
+
+    var copyTerm = function(dragged, target){
+      target.prefix = dragged.prefix;
+      target.name = dragged.name;
+    };
+
+    var copyFunctionTerm = function(dragged, target){
+      var copy = angular.copy(dragged);
+      target.function = copy.function;
+      target.parameters = copy.parameters;
+    };
+
+    var copyFunctionTermTemplate = function(dragged, target){
+      var copy = angular.copy(dragged);
+      var baseTerms = [];
+      gatherBaseTerms(target, baseTerms);
+      applyBaseTerms(baseTerms, copy);
+      target.function = copy.function;
+      target.parameters = copy.parameters;
+    };
+
+    var gatherBaseTerms = function(ft, baseTerms){
+      angular.forEach(ft.parameters, function (parameter) {
+        if (parameter instanceof BelLib.BaseTerm){
+          baseTerms.push(parameter);
+        } else if (parameter instanceof BelLib.FunctionTerm){
+          gatherBaseTerms(parameter, baseTerms);
+        }
+      });
+    };
+
+    var applyBaseTerms = function(baseTerms, ft){
+      angular.forEach(ft.parameters, function (parameter) {
+        if (parameter instanceof BelLib.BaseTerm && parameter.name === '?' && parameter.prefix === '?'){
+          var bt = baseTerms.pop();
+          parameter.name = bt.name;
+          parameter.prefix = bt.prefix;
+        } else if (parameter instanceof BelLib.FunctionTerm){
+          applyBaseTerms(baseTerms,parameter);
+        }
+      });
+    };
+
+    $scope.onDropFT = function (draggedFunctionTerm, targetFunctionTerm) {
+      if (draggedFunctionTerm) {
+        console.log('dropped FT ' + draggedFunctionTerm.toString('SHORT') + ' on ' + targetFunctionTerm.toString('SHORT'));
+        if (draggedFunctionTerm instanceof BelLib.FunctionTerm && draggedFunctionTerm !== targetFunctionTerm) {
+           if (draggedFunctionTerm instanceof BelLib.FunctionTermTemplate){
+             copyFunctionTermTemplate(draggedFunctionTerm, targetFunctionTerm);
+           } else {
+             copyFunctionTerm(draggedFunctionTerm, targetFunctionTerm);
+           }
+        }
+      }
+    };
 
     var editor = $scope.editor;
     editor.queryErrors = [];
     editor.networkId = $routeParams.networkId;
     editor.network = {};
     editor.networkSummary = {};
-    editor.predicates = {
-      'increases': '->',
-      'decreases' : '-|'
-    };
-    editor.getPredicates = function(){
-      return Object.keys(editor.predicates);
-    };
-    editor.getPredicateAbbrev = function(predicate){
-      return editor.predicates[predicate];
-    };
+
+
     if (!editor.networkId) {
       // 85e2ada9-8bfd-11e5-b435-06603eb7f303
-      //editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
-      editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb'; // small corpus
+      editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
+      //editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb'; // small corpus
     }
 
     editor.ndexUri = ndexService.getNdexServerUri();
@@ -642,7 +724,7 @@ angular.module('belPlus2App')
 
       fromJdexEdge: function (jdexEdgeId, jdexEdge, jdex) {
         this.s = BelLib.functionTermFromJdexNodeId(jdexEdge.subjectId, jdex);
-        this.r = BelLib.termFromJdexBaseTermId(jdexEdge.predicateId, jdex);
+        this.r = BelLib.relationshipFromJdexBaseTermId(jdexEdge.predicateId, jdex);
         this.o = BelLib.functionTermFromJdexNodeId(jdexEdge.objectId, jdex);
         this.props = BelLib.propertiesFromJdex(jdexEdge.properties);
       },
@@ -707,7 +789,7 @@ angular.module('belPlus2App')
       fromJdex: function (jdexFunctionTerm, jdex) {
         var functionId = jdexFunctionTerm.functionTermId;
         var parameterIds = jdexFunctionTerm.parameterIds;
-        this.function = BelLib.termFromJdexBaseTermId(functionId, jdex);
+        this.function = BelLib.funcFromJdexBaseTermId(functionId, jdex);
         var params = this.parameters;
         angular.forEach(parameterIds, function (id) {
           var p = BelLib.objectFromJdexTermId(id, jdex);
@@ -777,6 +859,12 @@ angular.module('belPlus2App')
       return termFunction.identifier() + '(' + params.join(', ') + ')';
     };
 
+    /*------------------------------------------------
+     FunctionTermTemplate
+     ------------------------------------------------*/
+
+    BelLib.FunctionTermTemplate = function(){};
+    BelLib.FunctionTermTemplate.prototype = new BelLib.FunctionTerm();
 
     /*------------------------------------------------
      Term
@@ -810,6 +898,63 @@ angular.module('belPlus2App')
       }
 
     };
+
+    /*------------------------------------------------
+     Function
+     ------------------------------------------------*/
+    BelLib.BaseTerm = function(){};
+    // inherit Term
+    BelLib.BaseTerm.prototype = new BelLib.Term();
+
+
+    /*------------------------------------------------
+     Function
+     ------------------------------------------------*/
+    BelLib.Func = function(){};
+    // inherit Term
+    BelLib.Func.prototype = new BelLib.Term();
+
+    /*------------------------------------------------
+     Relationship
+     ------------------------------------------------*/
+
+    BelLib.Relationship = function(){};
+
+    // inherit Term
+    BelLib.Relationship.prototype = new BelLib.Term();
+
+    BelLib.makeRelationship = function (prefix, name) {
+      var term = new BelLib.Relationship();
+      term.prefix = prefix;
+      term.name = name;
+      return term;
+    };
+
+    BelLib.makeFT = function (fn, parameters) {
+      var func = new BelLib.Func();
+      func.prefix = 'bel';
+      func.name = fn;
+      var ft = new BelLib.FunctionTermTemplate();
+      ft.function = func;
+      ft.parameters = parameters;
+      return ft;
+    };
+
+    BelLib.blankTerm = function(){
+      var blank = new BelLib.BaseTerm();
+      blank.name = '?';
+      blank.prefix = '?';
+      return blank;
+    };
+
+    BelLib.functionTermTemplates = [
+      BelLib.makeFT('proteinAbundance', [BelLib.blankTerm()]),
+      BelLib.makeFT('rnaAbundance', [BelLib.blankTerm()]),
+      BelLib.makeFT('abundance', [BelLib.blankTerm()]),
+      BelLib.makeFT('kinaseActivity',
+        [BelLib.makeFT('proteinAbundance', [BelLib.blankTerm()])])
+    ];
+
 
     BelLib.abbreviate = function (string) {
       switch (string) {
@@ -873,6 +1018,10 @@ angular.module('belPlus2App')
           return '->';
         case 'decreases':
           return '-|';
+        case 'directlyIncreases':
+          return '=>';
+        case 'directlyDecreases':
+          return '=|';
         default:
           return string;
       }
@@ -901,7 +1050,48 @@ angular.module('belPlus2App')
       var term = null;
       var jdexTerm = jdex.baseTerms[jdexBaseTermId];
       if (jdexTerm) {
-        term = new BelLib.Term();
+        term = new BelLib.BaseTerm();
+        term.name = jdexTerm.name;
+        if (jdexTerm.namespaceId && jdexTerm.namespaceId !== -1) {
+          var namespace = jdex.namespaces[jdexTerm.namespaceId];
+          if (namespace) {
+            if (namespace.prefix) {
+              term.prefix = namespace.prefix;
+            }
+          } else {
+            console.log('namespace is null id ' + jdexTerm.namespaceId + ' for term ' + term.name);
+          }
+        }
+      }
+      return term;
+    };
+
+
+    BelLib.funcFromJdexBaseTermId = function (jdexBaseTermId, jdex) {
+      var term = null;
+      var jdexTerm = jdex.baseTerms[jdexBaseTermId];
+      if (jdexTerm) {
+        term = new BelLib.Func();
+        term.name = jdexTerm.name;
+        if (jdexTerm.namespaceId && jdexTerm.namespaceId !== -1) {
+          var namespace = jdex.namespaces[jdexTerm.namespaceId];
+          if (namespace) {
+            if (namespace.prefix) {
+              term.prefix = namespace.prefix;
+            }
+          } else {
+            console.log('namespace is null id ' + jdexTerm.namespaceId + ' for term ' + term.name);
+          }
+        }
+      }
+      return term;
+    };
+
+    BelLib.relationshipFromJdexBaseTermId = function (jdexBaseTermId, jdex) {
+      var term = null;
+      var jdexTerm = jdex.baseTerms[jdexBaseTermId];
+      if (jdexTerm) {
+        term = new BelLib.Relationship();
         term.name = jdexTerm.name;
         if (jdexTerm.namespaceId && jdexTerm.namespaceId !== -1) {
           var namespace = jdex.namespaces[jdexTerm.namespaceId];
@@ -961,6 +1151,15 @@ angular.module('belPlus2App')
         }
       );
     };
+
+    editor.relationships = [
+      BelLib.makeRelationship('bel', 'increases'),
+      BelLib.makeRelationship('bel', 'decreases')
+    ];
+
+    editor.functionTermTemplates = BelLib.functionTermTemplates;
+    console.log(editor.functionTermTemplates);
+
 
 
     var buildModel = function () {

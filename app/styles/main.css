@@ -59,6 +59,40 @@ body {
   margin-top: 28px;
 }
 
+.base-term {
+  display: inline-block;
+}
+
+.base-term-template {
+  display: inline-block;
+  padding: 5px;
+  background-color: cadetblue;
+
+}
+
+.function-term-template {
+  display: inline-block;
+  padding: 5px;
+  background-color: coral;
+
+}
+
+.function-term {
+  display: inline-block;
+}
+
+div.bt-highlight {
+  background-color: lightblue;
+}
+
+li.bt-highlight {
+  background-color: lightcoral;
+}
+
+span.ft-highlight {
+  background-color: lightgreen;
+}
+
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
   .container {

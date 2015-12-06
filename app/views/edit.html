@@ -1,6 +1,66 @@
 <p ng-show="editor.networkSummary">Citations for {{editor.networkSummary.name}}</p>
 <p>On NDEx Server {{editor.ndexUri}}</p>
 
+<script type="text/ng-template" id="term_renderer.html">
+  <span ng-if="term.name" ng-init="bt=term" ng-include="'base_term_renderer.html'"></span>
+  <span ng-if="term.function" ng-init="ft=term" ng-include="'function_term_renderer.html'"></span>
+</script>
+
+<script type="text/ng-template" id="base_term_renderer.html">
+  <div class='base-term'
+       ng-class="overclass"
+        ng-drop="true"
+        ng-drop-success="onDropTerm($data,bt)"
+        ng-mouseover="overclass='bt-highlight'"
+        ng-mouseleave="overclass=''"
+        ng-drag="true"
+        ng-drag-data="bt">
+    {{bt.toString('SHORT')}}</div>
+</script>
+
+<script type="text/ng-template" id="function_term_renderer.html">
+  <span class='function-term'
+        ng-drag="true"
+        ng-drag-data="ft"
+        ng-drop="true"
+        ng-drop-success="onDropFT($data,ft)"
+        ng-class="overclass"
+        ng-mouseover="overclass='ft-highlight'"
+        ng-mouseleave="overclass=''">{{ft.function.toString('SHORT')}}</span>(<span ng-repeat="term in ft.parameters" ng-include="'term_renderer.html'"></span>)
+
+</script>
+
+<script type="text/ng-template" id="statement_renderer.html">
+  <p>
+    <span ng-repeat="term in [statement.s, statement.r, statement.o]" ng-include="'term_renderer.html'"></span>
+  </p>
+</script>
+
+
+<div>
+    <div class='base-term-template'
+         ng-repeat='term in editor.relationships'
+        ng-drag="true"
+        ng-drag-data="term"
+        ng-class="overclass"
+        ng-mouseover="overclass='bt-highlight'"
+        ng-mouseleave="overclass=''">
+      {{term.toString('SHORT')}}
+    </div>
+</div>
+
+<div>
+  <div class='function-term-template'
+       ng-repeat='term in editor.functionTermTemplates'
+       ng-drag="true"
+       ng-drag-data="term"
+       ng-class="overclass"
+       ng-mouseover="overclass='ft-highlight'"
+       ng-mouseleave="overclass=''">
+    {{term.toString('SHORT')}}
+  </div>
+</div>
+
 
 <uib-accordion>
   <uib-accordion-group ng-repeat="citation in editor.model.citations">
@@ -21,29 +81,13 @@
     <uib-accordion>
       <uib-accordion-group ng-repeat='support in citation.supports'>
         <uib-accordion-heading>
-          {{ '(' + support.statements.length + ') ' + support.shortText()}}
+          {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
           <i class="pull-right glyphicon"
              ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
         </uib-accordion-heading>
         <p>{{support.text}}</p>
 
-        <div ng-repeat="statement in support.statements">
-          <p>
-            <b>{{statement.s.toString('SHORT')}}</b>
-          <div class="btn-group" dropdown>
-            <button id="editPredicateButton" type="button"
-                    class="btn btn-primary dropdown-toggle customButtonWidth" data-toggle="dropdown">
-              {{statement.r.toString('SHORT')}}
-            </button>
-
-            <ul class="dropdown-menu" role="menu" aria-labelledby="editPredicateButton">
-              <li>foo</li>
-              <li>bar</li>
-              <li>baz</li>
-            </ul>
-          </div>
-            <b>{{statement.o.toString('SHORT')}}</b>
-          </p>
+        <div ng-repeat="statement in support.statements" ng-include="'statement_renderer.html'">
         </div>
       </uib-accordion-group>
     </uib-accordion>
