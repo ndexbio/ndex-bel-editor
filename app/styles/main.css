@@ -66,15 +66,16 @@ body {
 .base-term-template {
   display: inline-block;
   padding: 5px;
-  background-color: cadetblue;
+  background-color: rgba(0,0,255,0.1);
+  border: 2px solid white;
 
 }
 
 .function-term-template {
   display: inline-block;
   padding: 5px;
-  background-color: coral;
-
+  background-color: rgba(255,0,0,0.1);
+  border: 2px solid white;
 }
 
 .function-term {
@@ -96,7 +97,7 @@ span.ft-highlight {
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
   .container {
-    max-width: 730px;
+    max-width: 1730px;
   }
 
   /* Remove the padding we set earlier */

@@ -22,7 +22,35 @@ angular.module('belPlus2App')
 
     /*
     Issues:
-      ft template list
+
+      whats wrong with ft function encoding?
+      whats wrong with statement relationship encoding?
+
+      find good RAS paper on PMC that is accessible
+      new BEL document network
+      add citation - coordinate with reach service
+      add-remove support
+      add blank statement
+      remove statement
+      clone statement
+      move statement
+     change statement active status - tf
+     scratchpad - a pseudo citation?
+      statements
+      base terms
+      function terms
+
+      Handle unconnected nodes - scratchpad
+
+      Use the python service to manage a limited (1) set of accounts?
+
+      Save via CX
+        as bel
+        as kam with redundant edges merged
+        move this logic to python?
+      Reach
+        check handling of protein and gene product types, binding, sites, modifications, mutations, families
+
 
     Allowed Drag and Drop Cases:
 
@@ -117,9 +145,9 @@ angular.module('belPlus2App')
 
 
     if (!editor.networkId) {
-      // 85e2ada9-8bfd-11e5-b435-06603eb7f303
-      editor.networkId = '85e2ada9-8bfd-11e5-b435-06603eb7f303';   // test file around BCL2 and BAD
-      //editor.networkId = '55c84fa4-01b4-11e5-ac0f-000c29cb28fb'; // small corpus
+
+      editor.networkId = 'a9eb55f1-9d68-11e5-839e-0251251672f9'; // fries test output
+      //editor.networkId = 'ebc3355c-9d63-11e5-839e-0251251672f9';   // test file around BCL2 and BAD
     }
 
     editor.ndexUri = ndexService.getNdexServerUri();

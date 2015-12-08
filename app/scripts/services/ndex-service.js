@@ -15,7 +15,8 @@ angular.module('belPlus2App')
      * NDEx Server
      *---------------------------------------------------------------------*/
 
-    var ndexServerUri = 'http://public.ndexbio.org/rest';
+    var ndexServerUri = 'http://dev2.ndexbio.org/rest';
+    //var ndexServerUri = 'http://public.ndexbio.org/rest';
 
     this.getNdexServerUri = function(){
       return ndexServerUri;

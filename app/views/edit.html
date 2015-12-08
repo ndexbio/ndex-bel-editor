@@ -9,13 +9,14 @@
 <script type="text/ng-template" id="base_term_renderer.html">
   <div class='base-term'
        ng-class="overclass"
-        ng-drop="true"
-        ng-drop-success="onDropTerm($data,bt)"
-        ng-mouseover="overclass='bt-highlight'"
-        ng-mouseleave="overclass=''"
-        ng-drag="true"
-        ng-drag-data="bt">
-    {{bt.toString('SHORT')}}</div>
+       ng-drop="true"
+       ng-drop-success="onDropTerm($data,bt)"
+       ng-mouseover="overclass='bt-highlight'"
+       ng-mouseleave="overclass=''"
+       ng-drag="true"
+       ng-drag-data="bt">
+    {{bt.toString('SHORT')}}
+  </div>
 </script>
 
 <script type="text/ng-template" id="function_term_renderer.html">
@@ -26,7 +27,8 @@
         ng-drop-success="onDropFT($data,ft)"
         ng-class="overclass"
         ng-mouseover="overclass='ft-highlight'"
-        ng-mouseleave="overclass=''">{{ft.function.toString('SHORT')}}</span>(<span ng-repeat="term in ft.parameters" ng-include="'term_renderer.html'"></span>)
+        ng-mouseleave="overclass=''">{{ft.function.toString('SHORT')}}</span>(<span ng-repeat="term in ft.parameters"
+                                                                                    ng-include="'term_renderer.html'"></span>)
 
 </script>
 
@@ -36,90 +38,67 @@
   </p>
 </script>
 
+<div class="row">
+  <div class='col-md-2'>
 
-<div>
-    <div class='base-term-template'
-         ng-repeat='term in editor.relationships'
-        ng-drag="true"
-        ng-drag-data="term"
-        ng-class="overclass"
-        ng-mouseover="overclass='bt-highlight'"
-        ng-mouseleave="overclass=''">
-      {{term.toString('SHORT')}}
+    <div>
+      <div class='base-term-template'
+           ng-repeat='term in editor.relationships'
+           ng-drag="true"
+           ng-drag-data="term"
+           ng-class="overclass"
+           ng-mouseover="overclass='bt-highlight'"
+           ng-mouseleave="overclass=''">
+        {{term.toString('SHORT')}}
+      </div>
     </div>
-</div>
 
-<div>
-  <div class='function-term-template'
-       ng-repeat='term in editor.functionTermTemplates'
-       ng-drag="true"
-       ng-drag-data="term"
-       ng-class="overclass"
-       ng-mouseover="overclass='ft-highlight'"
-       ng-mouseleave="overclass=''">
-    {{term.toString('SHORT')}}
+    <div>
+      <div class='function-term-template'
+           ng-repeat='term in editor.functionTermTemplates'
+           ng-drag="true"
+           ng-drag-data="term"
+           ng-class="overclass"
+           ng-mouseover="overclass='ft-highlight'"
+           ng-mouseleave="overclass=''">
+        {{term.toString('SHORT')}}
+      </div>
+    </div>
   </div>
-</div>
-
-
-<uib-accordion>
-  <uib-accordion-group ng-repeat="citation in editor.model.citations">
-
-    <uib-accordion-heading>
-
-      {{citation.title || citation.identifier}}
-    </uib-accordion-heading>
-    <p><input type="checkbox"
-              ng-model='citation.selected'>{{citation.identifier}}</p>
-    <span ng-repeat='author in citation.contributors'>{{author}}  </span>
-
-    <p ng-show='citation.abstract'>{{citation.abstract}}</p>
-
-    <p ng-hide="citation.abstract"><a ng-click='citation.getAbstract()'>get abstract</a></p>
-
-
+  <div class='col-md-8 AlignCenter'>
     <uib-accordion>
-      <uib-accordion-group ng-repeat='support in citation.supports'>
-        <uib-accordion-heading>
-          {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
-          <i class="pull-right glyphicon"
-             ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
-        </uib-accordion-heading>
-        <p>{{support.text}}</p>
+      <uib-accordion-group ng-repeat="citation in editor.model.citations">
 
-        <div ng-repeat="statement in support.statements" ng-include="'statement_renderer.html'">
-        </div>
+        <uib-accordion-heading>
+
+          {{citation.title || citation.identifier}}
+        </uib-accordion-heading>
+        <p><input type="checkbox"
+                  ng-model='citation.selected'>{{citation.identifier}}</p>
+        <span ng-repeat='author in citation.contributors'>{{author}}  </span>
+
+        <p ng-show='citation.abstract'>{{citation.abstract}}</p>
+
+        <p ng-hide="citation.abstract"><a ng-click='citation.getAbstract()'>get abstract</a></p>
+
+
+        <uib-accordion>
+          <uib-accordion-group ng-repeat='support in citation.supports'>
+            <uib-accordion-heading>
+              {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
+              <i class="pull-right glyphicon"
+                 ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
+            </uib-accordion-heading>
+            <p>{{support.text}}</p>
+
+            <div ng-repeat="statement in support.statements" ng-include="'statement_renderer.html'">
+            </div>
+          </uib-accordion-group>
+        </uib-accordion>
+
       </uib-accordion-group>
     </uib-accordion>
+  </div>
+  </div>
 
-  </uib-accordion-group>
-</uib-accordion>
 
-<!--
-
-<div class="checkbox">
-  <label>
-    <input type="checkbox" ng-model="oneAtATime">
-    Open only one at a time
-  </label>
-</div>
-
-<uib-accordion close-others="oneAtATime">
-  <uib-accordion-group heading="Static Header, initially expanded" is-open="true" is-disabled="false">
-    This content is straight in the template.
-  </uib-accordion-group>
-  <uib-accordion-group heading="Another Static Header, initially closed" is-open="false" is-disabled="false">
-    This content is straight in the template.
-  </uib-accordion-group>
-</uib-accordion>
-
-<ul ng-repeat="citation in editor.model.citations">
-  <p>{{citation.identifier}}</p>
-  <ul ng-repeat="support in citation.supports">
-    <p>{{support.text}}</p>
-    <ul ng-repeat="statement in support.statements">
-      <p>{{statement.toString()}}</p>
-      </ul>
-  </ul>
-</ul>
--->
