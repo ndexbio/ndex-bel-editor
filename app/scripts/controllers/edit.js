@@ -146,7 +146,7 @@ angular.module('belPlus2App')
 
     if (!editor.networkId) {
 
-      editor.networkId = 'a9eb55f1-9d68-11e5-839e-0251251672f9'; // fries test output
+      editor.networkId = 'd4e31748-9ec0-11e5-9dd0-0251251672f9'; // fries test output
       //editor.networkId = 'ebc3355c-9d63-11e5-839e-0251251672f9';   // test file around BCL2 and BAD
     }
 
