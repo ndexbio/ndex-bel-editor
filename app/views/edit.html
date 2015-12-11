@@ -39,9 +39,35 @@
 </script>
 
 <div class="row">
+  <!--  Left Column for Drag and Drop Pallets and Scratchpad -->
   <div class='col-md-2'>
 
-    <div>
+    <div class='scratchpad-drop'
+         ng-drop="true"
+         ng-drop-success="onDropToScratchpad($data)"
+         ng-class="dropzone"
+         ng-mouseover="dropzone='scratchpad-drop-highlight'"
+         ng-mouseleave="dropzone=''">
+      Add to Terms
+    </div>
+
+    <div class="drag-pallete">
+      <h4>Terms</h4>
+
+      <div class='base-term-template'
+           ng-repeat='term in editor.termScratchpad'
+           ng-drag="true"
+           ng-drag-data="term"
+           ng-class="overclass"
+           ng-mouseover="overclass='bt-highlight'"
+           ng-mouseleave="overclass=''">
+        {{term.toString('SHORT')}}
+      </div>
+    </div>
+
+    <div class="drag-pallete">
+      <h4>Relationships</h4>
+
       <div class='base-term-template'
            ng-repeat='term in editor.relationships'
            ng-drag="true"
@@ -53,7 +79,9 @@
       </div>
     </div>
 
-    <div>
+    <div class="drag-pallete">
+      <h4>Templates</h4>
+
       <div class='function-term-template'
            ng-repeat='term in editor.functionTermTemplates'
            ng-drag="true"
@@ -64,8 +92,44 @@
         {{term.toString('SHORT')}}
       </div>
     </div>
+
   </div>
-  <div class='col-md-8 AlignCenter'>
+
+  <!--  Middle Column for Editing -->
+
+  <div class='col-md-8 AlignCenter edit-model-display'>
+    <div class="support">
+    <p>{{editor.currentSupport.text}}</p>
+
+    <div ng-repeat="statement in editor.currentSupport.statements" ng-include="'statement_renderer.html'">
+    </div>
+    </div>
+  </div>
+
+  <!--  Right Column for Citations and Supports -->
+  <div class='col-md-2 AlignCenter edit-model-display'>
+    <uib-accordion>
+      <uib-accordion-group ng-repeat="citation in editor.model.citations">
+
+        <uib-accordion-heading>
+          {{citation.title || citation.identifier}}
+        </uib-accordion-heading>
+
+        <div ng-repeat='support in citation.supports' ng-click='setCurrentSupport(support)'>
+              {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
+        </div>
+
+
+      </uib-accordion-group>
+    </uib-accordion>
+  </div>
+
+</div>
+
+
+<!--
+
+  <div class='col-md-8 AlignCenter edit-model-display'>
     <uib-accordion>
       <uib-accordion-group ng-repeat="citation in editor.model.citations">
 
@@ -99,6 +163,5 @@
       </uib-accordion-group>
     </uib-accordion>
   </div>
-  </div>
 
-
+  -->

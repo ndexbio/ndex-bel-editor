@@ -19,28 +19,25 @@ angular.module('belPlus2App')
     $scope.foo = 'this is foo';
     $scope.oneAtATime = false;
     $scope.draggedBaseTerm = false;
+    $scope.editor.termScratchpad = [];
+    $scope.editor.currentSupport = false;
 
     /*
     Issues:
 
-      whats wrong with ft function encoding?
-      whats wrong with statement relationship encoding?
+    focus on one citation at a time - dropdown to switch
 
-      find good RAS paper on PMC that is accessible
-      new BEL document network
-      add citation - coordinate with reach service
+      page for new network from pmc
+
       add-remove support
       add blank statement
       remove statement
       clone statement
       move statement
      change statement active status - tf
-     scratchpad - a pseudo citation?
-      statements
-      base terms
-      function terms
 
-      Handle unconnected nodes - scratchpad
+
+      Handle unconnected nodes -> special scratchpad?
 
       Use the python service to manage a limited (1) set of accounts?
 
@@ -135,6 +132,16 @@ angular.module('belPlus2App')
            }
         }
       }
+    };
+
+    $scope.onDropToScratchpad = function(dragged){
+      if (dragged && dragged instanceof BelLib.BaseTerm){
+        $scope.editor.termScratchpad.push(angular.copy(dragged));
+      }
+    };
+
+    $scope.setCurrentSupport = function(support){
+      $scope.editor.currentSupport = support;
     };
 
     var editor = $scope.editor;

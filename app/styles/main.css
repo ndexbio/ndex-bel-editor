@@ -83,15 +83,46 @@ body {
 }
 
 div.bt-highlight {
-  background-color: lightblue;
+  background-color: rgba(255,0,0,0.1);
 }
 
 li.bt-highlight {
-  background-color: lightcoral;
+  background-color: rgba(255,0,0,0.1);
 }
 
 span.ft-highlight {
-  background-color: lightgreen;
+  background-color: rgba(0,0,255,0.1);
+}
+
+.edit-model-display {
+  height: 600px;
+  overflow: scroll;
+}
+
+.support {
+  width: 100%;
+  border: 1px solid;
+  border-color: deepskyblue;
+  border-radius: 10px;
+}
+
+.scratchpad-drop {
+  width: 100%;
+  height: 50px;
+  text-align: center;
+  border: 1px solid;
+  border-radius: 10px;
+}
+
+.scratchpad-drop-highlight {
+  background-color: greenyellow;
+}
+
+.drag-pallete {
+  border: 1px solid;
+  border-radius: 10px;
+  height: 170px;
+  text-align: center;
 }
 
 /* Responsive: Portrait tablets and up */
