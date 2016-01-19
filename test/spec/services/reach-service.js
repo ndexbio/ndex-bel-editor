@@ -3,7 +3,7 @@
 describe('Service: ReachService', function () {
 
   // load the service's module
-  beforeEach(module('belPlus2App'));
+  beforeEach(module('belEditApp'));
 
   // instantiate service
   var ReachService;

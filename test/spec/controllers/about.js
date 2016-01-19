@@ -3,7 +3,7 @@
 describe('Controller: AboutCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('belPlus2App'));
+  beforeEach(module('belEditApp'));
 
   var AboutCtrl,
     scope;

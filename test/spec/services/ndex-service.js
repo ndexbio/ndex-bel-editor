@@ -3,7 +3,7 @@
 describe('Service: ndexService', function () {
 
   // load the service's module
-  beforeEach(module('belPlus2App'));
+  beforeEach(module('belEditApp'));
 
   // instantiate service
   var ndexService;

@@ -1,5 +1,6 @@
 <p ng-show="editor.networkSummary">Citations for {{editor.networkSummary.name}}</p>
 <p>On NDEx Server {{editor.ndexUri}}</p>
+<a ng-click="editor.toCX()">generate CX</a>
 
 <script type="text/ng-template" id="term_renderer.html">
   <span ng-if="term.name" ng-init="bt=term" ng-include="'base_term_renderer.html'"></span>
@@ -115,8 +116,10 @@
           {{citation.title || citation.identifier}}
         </uib-accordion-heading>
 
-        <div ng-repeat='support in citation.supports' ng-click='setCurrentSupport(support)'>
-              {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
+        <div ng-repeat='support in citation.supports' >
+              <span ng-click='setCurrentSupport(support)' ng-if="support.statements.length >0 ">
+                {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
+                </span>
         </div>
 
 

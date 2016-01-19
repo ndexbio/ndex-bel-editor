@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc function
- * @name belPlus2App.controller:AboutCtrl
+ * @name belEditApp.controller:AboutCtrl
  * @description
  * # AboutCtrl
- * Controller of the belPlus2App
+ * Controller of the belEditApp
  */
-angular.module('belPlus2App')
+angular.module('belEditApp')
   .controller('AboutCtrl', function () {
     this.awesomeThings = [
       'HTML5 Boilerplate',

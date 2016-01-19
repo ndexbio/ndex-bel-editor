@@ -2,17 +2,18 @@
 
 /**
  * @ngdoc function
- * @name belPlus2App.controller:EditCtrl
+ * @name belEditApp.controller:EditCtrl
  * @description
  * # EditCtrl
- * Controller of the belPlus2App
+ * Controller of the belEditApp
  */
-var cns, cn, cm;
+var cns, cn, cm, cx;
 cns = {};
 cn = {};
 cm = {};
+cx = [];
 
-angular.module('belPlus2App')
+angular.module('belEditApp')
   .controller('EditCtrl', ['ndexService', '$routeParams', '$scope', '$http', function (ndexService, $routeParams, $scope, $http) {
 
     $scope.editor = {};
@@ -149,14 +150,15 @@ angular.module('belPlus2App')
     editor.networkId = $routeParams.networkId;
     editor.network = {};
     editor.networkSummary = {};
+    editor.cx = [];
 
-
+/*
     if (!editor.networkId) {
 
       editor.networkId = 'd4e31748-9ec0-11e5-9dd0-0251251672f9'; // fries test output
       //editor.networkId = 'ebc3355c-9d63-11e5-839e-0251251672f9';   // test file around BCL2 and BAD
     }
-
+*/
     editor.ndexUri = ndexService.getNdexServerUri();
 
     editor.handleCheckboxClick = function (citation) {
@@ -247,11 +249,16 @@ angular.module('belPlus2App')
         var model = this;
         console.log(Object.keys(jdex.citations).length + ' citations in source');
         angular.forEach(jdex.citations, function (jdexCitation, jdexCitationId) {
-          console.log('citation: ' + jdexCitationId + ' ' + jdexCitation.identifier);
+          //console.log('citation: ' + jdexCitationId + ' ' + jdexCitation.identifier);
           var citation = new BelLib.Citation(model);
           citation.fromJdex(jdexCitationId, jdexCitation, jdex);
           model.citations.push(citation);
         });
+      },
+
+      toJSON: function(){
+        return angular.toJson(this.toCX());
+
       },
 
       toCX: function () {
@@ -259,26 +266,25 @@ angular.module('belPlus2App')
 
         cx.start();
 
-        angular.forEach(this.namespaces, function (namespace) {
-          cx.outputNamespace(namespace);
+        angular.forEach(this.namespaces, function (uri, prefix) {
+          cx.outputNamespace(prefix, uri);
 
         });
 
         angular.forEach(this.citations, function (citation) {
-          if (citation.selected) {
-            console.log('citation to CX: ' + citation.identifier);
-            cx.outputCitation(citation);
-          }
+          console.log('citation to CX: ' + citation.identifier);
+          cx.outputCitation(citation);
         });
 
         cx.end();
 
-        return cx.toJSON();
+        return cx.output;
       }
     };
 
     BelLib.CX = function (model) {
       this.model = model;
+      this.contexts = {};
       this.output = [];
       this.functionTermNodeIdMap = {};
       this.nodeIdCounter = 0;
@@ -329,20 +335,22 @@ angular.module('belPlus2App')
 
       outputCitation: function (citation) {
         var cxCitationId = this.emitCXCitation(citation.type, citation.uri, citation.title, citation.contributors, citation.identifier, citation.description);
+        var cx = this;
         angular.forEach(citation.supports, function (support) {
-          this.outputSupport(cxCitationId, support);
+          cx.outputSupport(cxCitationId, support);
         });
 
       },
 
-      outputNamespace: function (namespace) {
-        this.addCXContext(namespace.prefix, namespace.uri);
+      outputNamespace: function (prefix, uri) {
+        this.addCXContext(prefix, uri);
       },
 
       outputSupport: function (cxCitationId, support) {
         var cxSupportId = this.emitCXSupport(cxCitationId, support.text);
+        var cx = this;
         angular.forEach(support.statements, function (statement) {
-          this.outputStatement(statement, cxSupportId);
+          cx.outputStatement(statement, cxSupportId);
         });
 
       },
@@ -353,20 +361,23 @@ angular.module('belPlus2App')
 
 
         // case: subject - object statement
-        var sourceId = this.outputTerm(statement.subject);
-        var targetId = this.outputTerm(statement.object);
-        var interaction = statement.relationship;
-        var edgeId = this.emitCXEdge(sourceId, targetId, interaction);
-        console.log('emitted edge ' + edgeId);
+        var sourceId = this.outputTerm(statement.s);
+        var targetId = this.outputTerm(statement.o);
+        var interaction = statement.r;
+        console.log('todo emit edge ' + statement.s + sourceId + ' ' + interaction + ' ' + statement.o + targetId);
+        //var edgeId = this.emitCXEdge(sourceId, targetId, interaction);
+        //console.log('emitted edge ' + edgeId);
       },
 
       outputTerm: function (term) {
-        console.log('outputting ' + term);
+        console.log('todo output term ' + term);
+        return 1;
       },
 
       // Accumulate Contexts
       addCXContext: function (prefix, uri) {
         this.contexts[prefix] = uri;
+        return 2;
       },
 
       // Numeric Check
@@ -381,25 +392,27 @@ angular.module('belPlus2App')
 
       // Pre-Metadata
       emitPreMetadata: function () {
+        console.log('todo emit pre-metadata');
 
       },
 
       emitPostMetadata: function () {
-
+        console.log('todo emit post-metadata');
       },
 
       // Aspect Element Methods
 
       emitCXFragment: function (aspectName, body) {
-        this.output.push({aspectName: [body]});
+        var fragment = {};
+        fragment[aspectName] = body;
+        this.output.push(fragment);
       },
 
       emitCXContext: function () {
         this.emitCXFragment(
           '@context',
-          [
-            this.contexts
-          ]);
+          this.contexts
+          );
       },
 
       emitCXCitation: function (type, title, contributors, identifier, description) {
@@ -681,7 +694,7 @@ angular.module('belPlus2App')
         this.text = jdexSupport.text;
         var sup = this;
 
-        console.log('sup: ' + typeof(jdexSupportId) + jdexSupportId + ' ' + sup.text + ' ' + jdex.name);
+        //console.log('sup: ' + typeof(jdexSupportId) + jdexSupportId + ' ' + sup.text + ' ' + jdex.name);
 
         var jdexEdgeIds = jdex.supportEdgeMap[jdexSupportId];
 
@@ -1189,15 +1202,23 @@ angular.module('belPlus2App')
 
     editor.relationships = [
       BelLib.makeRelationship('bel', 'increases'),
-      BelLib.makeRelationship('bel', 'decreases')
+      BelLib.makeRelationship('bel', 'decreases'),
+      BelLib.makeRelationship('bel', 'directlyIncreases'),
+      BelLib.makeRelationship('bel', 'directlyDecreases')
     ];
 
     editor.functionTermTemplates = BelLib.functionTermTemplates;
     console.log(editor.functionTermTemplates);
 
-
+    editor.toCX = function(){
+      if (editor.model){
+        editor.cx = editor.model.toCX();
+        cx = editor.cx;
+      }
+    };
 
     var buildModel = function () {
+      $scope.editor.model = null;
       cm = new BelLib.Model();
       console.log('got summary ' + editor.networkSummary.name);
       console.log('got network ' + editor.network.name);
@@ -1206,20 +1227,23 @@ angular.module('belPlus2App')
       $scope.editor.model = cm;
     };
 
-    ndexService.getNetworkSummary(editor.networkId)
-      .success(
-      function (networkSummary) {
-        cns = networkSummary;
-        editor.queryErrors = [];
-        editor.networkSummary = networkSummary;
-        console.log('success for networkSummary = ' + editor.networkSummary.name);
-        getNetwork(buildModel);
-      }
-    ).error(
-      function (error) {
-        editor.queryErrors.push(error);
-      }
-    );
+    if (editor.networkId) {
+
+      ndexService.getNetworkSummary(editor.networkId)
+        .success(
+        function (networkSummary) {
+          cns = networkSummary;
+          editor.queryErrors = [];
+          editor.networkSummary = networkSummary;
+          console.log('success for networkSummary = ' + editor.networkSummary.name);
+          getNetwork(buildModel);
+        }
+      ).error(
+        function (error) {
+          editor.queryErrors.push(error);
+        }
+      );
+    }
 
   }])
 ;

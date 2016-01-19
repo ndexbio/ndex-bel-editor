@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc service
- * @name belPlus2App.ndexService
+ * @name belEditApp.ndexService
  * @description
  * # ndexService
- * Service in the belPlus2App.
+ * Service in the belEditApp.
  */
-angular.module('belPlus2App')
+angular.module('belEditApp')
   .service('ndexService', ['$http', '$q', function ($http, $q) {
     // AngularJS will instantiate a singleton by calling 'new' on this function
 
@@ -34,19 +34,9 @@ angular.module('belPlus2App')
 
     this.searchNetworks = function (searchString, accountName, permission, includeGroups, skipBlocks, blockSize) {
       var url = '/network/search/' + skipBlocks.toString() + '/' + blockSize.toString();
-      var postData = {};
-      if( accountName )
-      {
-        postData = {
-          searchString: searchString,
-          accountName: accountName
-        };
-      }
-      else
-      {
-        postData = {
-          searchString: searchString
-        };
+      var postData = {searchString: searchString};
+      if( accountName ) {
+        postData.accountName = accountName;
       }
 
       if (permission) {

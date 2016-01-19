@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc function
- * @name belPlus2App.controller:ReachCtrl
+ * @name belEditApp.controller:NLPCtrl
  * @description
- * # ReachCtrl
- * Controller of the belPlus2App
+ * # NLPCtrl
+ * Controller of the belEditApp
  */
-angular.module('belPlus2App')
-  .controller('ReachCtrl', ['$scope', '$http', function ($scope, $http) {
+angular.module('belEditApp')
+  .controller('NLPCtrl', ['$scope', '$http', function ($scope, $http) {
     $scope.pmcXML = false;
     $scope.reachJSON = false;
     $scope.reachError = false;

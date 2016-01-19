@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc service
- * @name belPlus2App.ReachService
+ * @name belEditApp.ReachService
  * @description
  * # ReachService
- * Service in the belPlus2App.
+ * Service in the belEditApp.
  */
 /*
-angular.module('belPlus2App')
+angular.module('belEditApp')
   .service('ReachService',  ['$http', function ($http) {
 */
 /*    Send NXML File

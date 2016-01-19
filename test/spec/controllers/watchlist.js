@@ -3,7 +3,7 @@
 describe('Controller: WatchlistCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('belPlus2App'));
+  beforeEach(module('belEditApp'));
 
   var WatchlistCtrl,
     scope;

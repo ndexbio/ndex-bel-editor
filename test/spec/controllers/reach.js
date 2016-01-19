@@ -1,9 +1,9 @@
 'use strict';
 
-describe('Controller: ReachCtrl', function () {
+describe('Controller: NLPCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('belPlus2App'));
+  beforeEach(module('belEditApp'));
 
   var ReachCtrl,
     scope;

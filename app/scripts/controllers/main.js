@@ -2,72 +2,123 @@
 
 /**
  * @ngdoc function
- * @name belPlus2App.controller:MainCtrl
+ * @name belEditApp.controller:MainCtrl
  * @description
  * # MainCtrl
- * Controller of the belPlus2App
+ * Controller of the belEditApp
  */
-angular.module('belPlus2App')
+angular.module('belEditApp')
   .controller(
   'MainCtrl',
-  ['ndexService', '$location', '$scope', '$http',
-  function (ndexService, $location, $scope, $http) {
+  ['ndexService', '$location', '$scope', '$http', 'sharedProperties',
+    function (ndexService, $location, $scope, $http, sharedProperties) {
 
-    //---------------------------------------------
-    // SignIn Handler
-    //---------------------------------------------
 
-    $scope.signIn = {};
-    $scope.signIn.newUser = {};
-    $scope.loggedIn = false;
+      //---------------------------------------------
+      // Network Display
+      //
+      // Finding and displaying networks
+      //---------------------------------------------
 
-    $scope.signIn.submitSignIn = function () {
-      ndexService.clearUserCredentials();
-      var url = ndexService.getNdexServerUri() + '/user/authenticate';
-      var config =
-      {
-        headers: {
-          'Authorization': 'Basic ' + btoa($scope.signIn.accountName + ':' + $scope.signIn.password)
-        }
+
+      $scope.networkDisplay = {};
+      var networkDisplay = $scope.networkDisplay;
+
+      //networks
+      networkDisplay.accountName = 'rembel';
+      networkDisplay.foo = 'debugging variable foo';
+      networkDisplay.permission = 'READ';
+      networkDisplay.networkSearchResults = [];
+      networkDisplay.skip = 0;
+      networkDisplay.blockSize = 10000;
+      networkDisplay.includeGroups = false;
+      networkDisplay.searchString = '';
+      networkDisplay.allSelected = false;
+      networkDisplay.atLeastOneSelected = false;
+
+      networkDisplay.editNetwork = function (networkId) {
+        $location.path('/edit/' + networkId);
       };
-      $http.get(url, config).
-        success(function (data) // ,status, headers, config, statusText
+
+      networkDisplay.searchNetworks = function () {
+        networkDisplay.networkSearchResults = null;
+        networkDisplay.error = null;
+
+        // searchString, accountName, permission, includeGroups, skipBlocks, blockSize
+
+        ndexService.searchNetworks(
+          networkDisplay.searchString,
+          networkDisplay.accountName,
+          networkDisplay.permission,
+          networkDisplay.includeGroups,
+          networkDisplay.skip,
+          networkDisplay.blockSize)
+          .success(
+          function (networks) {
+            networkDisplay.networkSearchResults = networks;
+            console.log('networkSearchResults = ' + networks);
+          })
+          .error(
+          function (error) {
+            networkDisplay.error = error;
+            console.log('search error = ' + error);
+          });
+      };
+
+
+      //---------------------------------------------
+      // SignIn Handler
+      //---------------------------------------------
+
+      $scope.signIn = {};
+      $scope.signIn.newUser = {};
+      $scope.loggedIn = false;
+      // hardwire rembel for now
+      $scope.signIn.password = 'rembel';
+      $scope.signIn.accountName = 'rembel';
+
+      $scope.signIn.submitSignIn = function () {
+        ndexService.clearUserCredentials();
+        $scope.loggedIn = false;
+        var url = ndexService.getNdexServerUri() + '/user/authenticate';
+        var config =
         {
-          //sharedProperties.setCurrentUser(data.externalId, data.accountName); //this info will have to be sent via emit if we want dynamic info on the nav bar
-          ndexService.setUserCredentials(data.accountName, data.externalId, $scope.signIn.password);
-          //$scope.$emit('LOGGED_IN'); //Angular service capability, shoot a signal up the scope tree notifying parent scopes this event occurred, see mainController
-          //$location.path('/user/' + data.externalId);
-          $scope.loggedIn = true;
-          $scope.signIn.accountName = null;
-          $scope.signIn.password = null;
-        }).
-        error(function (data, status) // , headers, config, statusText
-        {
-          if (status === 401) {
-            $scope.signIn.message = 'Invalid password for user ' + $scope.signIn.accountName + '.';
-          } else if (status === 404) {
-            $scope.signIn.message = 'User ' + $scope.signIn.accountName + ' is not known.';
-          } else {
-            $scope.signIn.message = 'Unexpected error during sign-in with status ' + status + '.';
+          headers: {
+            'Authorization': 'Basic ' + btoa($scope.signIn.accountName + ':' + $scope.signIn.password)
           }
-        });
-    };
+        };
+        $http.get(url, config).
+          success(function (data) // ,status, headers, config, statusText
+          {
+            sharedProperties.setCurrentUser(data.externalId, data.accountName); //this info will have to be sent via emit if we want dynamic info on the nav bar
+            ndexService.setUserCredentials(data.accountName, data.externalId, $scope.signIn.password);
+            //$scope.$emit('LOGGED_IN'); //Angular service capability, shoot a signal up the scope tree notifying parent scopes this event occurred, see mainController
+            //$location.path('/user/' + data.externalId);
+            $scope.loggedIn = true;
+            $scope.signIn.accountName = null;
+            $scope.signIn.password = null;
+            networkDisplay.searchNetworks();
+          }).
+          error(function (data, status) // , headers, config, statusText
+          {
+            if (status === 401) {
+              $scope.signIn.message = 'Invalid password for user ' + $scope.signIn.accountName + '.';
+            } else if (status === 404) {
+              $scope.signIn.message = 'User ' + $scope.signIn.accountName + ' is not known.';
+            } else {
+              $scope.signIn.message = 'Unexpected error during sign-in with status ' + status + '.';
+            }
+          });
+      };
 
 
-
-    $scope.signIn.cancel = function () {
-      $scope.main.showSignIn = false;
-    };
-
-    $scope.$watch('signIn.newUser.password', function () {
-      delete $scope.signIn.signUpErrors;
-    });
-    $scope.$watch('signIn.newUser.passwordConfirm', function () {
-      delete $scope.signIn.signUpErrors;
-    });
+      if(!sharedProperties.getCurrentUserId()){
+        // if have not yet established the current user, log in, which will cause a search to happen
+        $scope.signIn.submitSignIn();
+      } else {
+        // if we reload and we have a current user, go ahead and search
+        networkDisplay.searchNetworks();
+      }
 
 
-
-
-
-  }]);
+    }]);

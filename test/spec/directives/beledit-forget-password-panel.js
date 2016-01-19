@@ -3,7 +3,7 @@
 describe('Directive: beleditForgetPasswordPanel', function () {
 
   // load the directive's module
-  beforeEach(module('belPlus2App'));
+  beforeEach(module('belEditApp'));
 
   var element,
     scope;

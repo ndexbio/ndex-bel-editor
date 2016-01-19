@@ -2,17 +2,15 @@
 
 /**
  * @ngdoc overview
- * @name belPlus2App
+ * @name belEditApp
  * @description
- * # belPlus2App
+ * # belEditApp
  *
  * Main module of the application.
  */
 
-
-
-var belPlus2App = angular
-  .module('belPlus2App', [
+var belEditApp = angular
+  .module('belEditApp', [
     'ngAnimate',
     'ngCookies',
     'ngResource',
@@ -44,20 +42,20 @@ var belPlus2App = angular
         controller: 'EditCtrl',
         controllerAs: 'edit'
       })
-      .when('/reach', {
-        templateUrl: 'views/reach.html',
-        controller: 'ReachCtrl',
-        controllerAs: 'reach'
+      .when('/nlp', {
+        templateUrl: '../views/nlp.html',
+        controller: 'NLPCtrl',
+        controllerAs: 'nlp'
       })
       .otherwise({
         redirectTo: '/'
       });
   }
-
 );
 
+
 //Internet Explorer solution???
-belPlus2App.config(['$httpProvider', function ($httpProvider) {
+belEditApp.config(['$httpProvider', function ($httpProvider) {
 
   $httpProvider.defaults.useXDomain = true;
 
@@ -75,5 +73,39 @@ belPlus2App.config(['$httpProvider', function ($httpProvider) {
     $httpProvider.defaults.headers.get['If-Modified-Since'] = '0';
   }
 
-}]);
+}
+]);
+
+
+belEditApp.service('sharedProperties', function () {
+  // this service is going to act as a general global variable throughout the application
+  // should consider implementing some degree of relationship with localStorage to guard against
+  // refreshes. In fact, we might just use cookies or something else because we may not want this to be permanent
+
+
+  return {
+    getCurrentNetworkId: function () {
+      //if (!this.currentNetworkId) this.currentNetworkId = "C25R1174";   // hardwired for testing
+      return this.currentNetworkId;
+    },
+    setCurrentNetworkId: function (value) {
+      //should save in local storage
+      this.currentNetworkId = value;
+    },
+    getCurrentUserId: function () {
+      //if (!this.currentUserId) this.currentUserId = "C31R4";   // hardwired for testing
+      return this.currentUserId;
+    },
+    setCurrentUserId: function (currentUserId) {
+      this.currentUserId = currentUserId;
+    },
+    getCurrentUserAccountName: function () {
+      return this.accountName;
+    },
+    setCurrentUser: function (value, accountName) {
+      this.currentUserId = value;
+      this.accountName = accountName;
+    }
+  };
+});
 

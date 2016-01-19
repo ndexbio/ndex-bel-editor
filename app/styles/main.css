@@ -102,6 +102,7 @@ span.ft-highlight {
 .support {
   width: 100%;
   border: 1px solid;
+  padding: 10px;
   border-color: deepskyblue;
   border-radius: 10px;
 }
