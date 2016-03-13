@@ -1,6 +1,13 @@
 <p ng-show="editor.networkSummary">Citations for {{editor.networkSummary.name}}</p>
 <p>On NDEx Server {{editor.ndexUri}}</p>
-<a ng-click="editor.toCX()">generate CX</a>
+<a ng-click="editor.toOutputCX()">generate Output CX</a>
+
+<div class="json-block" ng-show="editor.prettyCxLoaded">
+  <h3>This is the CX loaded from NDEx</h3>
+  <div class="preformatted">
+    {{editor.prettyCxLoaded}}
+  </div>
+</div>
 
 <script type="text/ng-template" id="term_renderer.html">
   <span ng-if="term.name" ng-init="bt=term" ng-include="'base_term_renderer.html'"></span>
@@ -30,7 +37,6 @@
         ng-mouseover="overclass='ft-highlight'"
         ng-mouseleave="overclass=''">{{ft.function.toString('SHORT')}}</span>(<span ng-repeat="term in ft.parameters"
                                                                                     ng-include="'term_renderer.html'"></span>)
-
 </script>
 
 <script type="text/ng-template" id="statement_renderer.html">
@@ -40,7 +46,9 @@
 </script>
 
 <div class="row">
+
   <!--  Left Column for Drag and Drop Pallets and Scratchpad -->
+  <!--
   <div class='col-md-2'>
 
     <div class='scratchpad-drop'
@@ -95,8 +103,10 @@
     </div>
 
   </div>
+  -->
 
   <!--  Middle Column for Editing -->
+  <!--
 
   <div class='col-md-8 AlignCenter edit-model-display'>
     <div class="support">
@@ -106,8 +116,10 @@
     </div>
     </div>
   </div>
+  -->
 
   <!--  Right Column for Citations and Supports -->
+  <!--
   <div class='col-md-2 AlignCenter edit-model-display'>
     <uib-accordion>
       <uib-accordion-group ng-repeat="citation in editor.model.citations">
@@ -126,45 +138,9 @@
       </uib-accordion-group>
     </uib-accordion>
   </div>
+  -->
 
 </div>
 
 
-<!--
 
-  <div class='col-md-8 AlignCenter edit-model-display'>
-    <uib-accordion>
-      <uib-accordion-group ng-repeat="citation in editor.model.citations">
-
-        <uib-accordion-heading>
-
-          {{citation.title || citation.identifier}}
-        </uib-accordion-heading>
-        <p><input type="checkbox"
-                  ng-model='citation.selected'>{{citation.identifier}}</p>
-        <span ng-repeat='author in citation.contributors'>{{author}}  </span>
-
-        <p ng-show='citation.abstract'>{{citation.abstract}}</p>
-
-        <p ng-hide="citation.abstract"><a ng-click='citation.getAbstract()'>get abstract</a></p>
-
-
-        <uib-accordion>
-          <uib-accordion-group ng-repeat='support in citation.supports'>
-            <uib-accordion-heading>
-              {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
-              <i class="pull-right glyphicon"
-                 ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></i>
-            </uib-accordion-heading>
-            <p>{{support.text}}</p>
-
-            <div ng-repeat="statement in support.statements" ng-include="'statement_renderer.html'">
-            </div>
-          </uib-accordion-group>
-        </uib-accordion>
-
-      </uib-accordion-group>
-    </uib-accordion>
-  </div>
-
-  -->

@@ -1,18 +1,18 @@
 'use strict';
 
-describe('Service: belModelService', function () {
+describe('Service: BelModelService', function () {
 
   // load the service's module
   beforeEach(module('belEditApp'));
 
   // instantiate service
-  var belModelService;
-  beforeEach(inject(function (_belModelService_) {
-    belModelService = _belModelService_;
+  var BelModelService;
+  beforeEach(inject(function (_BelModelService_) {
+    BelModelService = _BelModelService_;
   }));
 
   it('should do something', function () {
-    expect(!!belModelService).toBe(true);
+    expect(!!BelModelService).toBe(true);
   });
 
 });
