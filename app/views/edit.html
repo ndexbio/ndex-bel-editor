@@ -2,6 +2,10 @@
 <p>On NDEx Server {{editor.ndexUri}}</p>
 <a ng-click="editor.toOutputCX()">generate Output CX</a>
 
+<div ng-repeat="line in editor.log">
+  <p>{{line}}</p>
+</div>
+
 <div class="json-block" ng-show="editor.prettyCxLoaded">
   <h3>This is the CX loaded from NDEx</h3>
   <div class="preformatted">
@@ -44,6 +48,8 @@
     <span ng-repeat="term in [statement.s, statement.r, statement.o]" ng-include="'term_renderer.html'"></span>
   </p>
 </script>
+
+
 
 <div class="row">
 

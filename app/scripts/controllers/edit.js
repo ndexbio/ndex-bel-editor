@@ -43,6 +43,8 @@ angular.module('belEditApp')
       editor.cx = [];
       editor.prettyCxLoaded = 'Placeholder for Pretty CX Loaded';
       editor.model = {};
+      editor.log = [];
+
 
       /*
        if (!editor.networkId) {
@@ -57,7 +59,7 @@ angular.module('belEditApp')
         console.log('citation checkbox click ' + citation.identifier);
       };
 
-      console.log('in edit.js');
+      editor.log.push('in edit.js');
 
       console.log(editor);
 
@@ -194,7 +196,7 @@ angular.module('belEditApp')
         BelTranslateService.makeRelationship('bel', 'directlyDecreases')
       ];
 
-      editor.functionTermTemplates = BelTranslateService.functionTermTemplates;
+      editor.functionTermTemplates = BelTranslateService.makeFunctionTermTemplates();
       console.log('These are the function term templates:');
       console.log(editor.functionTermTemplates);
 
@@ -234,10 +236,12 @@ angular.module('belEditApp')
 
       var buildModel = function () {
         $scope.editor.model = {};
-        //console.log('about to load bel model from ' + editor.networkSummary.name);
-        //cm = BelTranslateService.cxToSm(editor.cxLoaded);
-        //$scope.editor.model = cm;
-        //BelModelService.statementModel = cm;
+        editor.log.push('about to load bel model from ' + editor.networkSummary.name);
+
+        cm = BelTranslateService.cxToSm(editor.cxLoaded, editor.log);
+        editor.log.push('finished loading');
+        $scope.editor.model = cm;
+        BelModelService.statementModel = cm;
       };
 
       if (editor.networkId) {
