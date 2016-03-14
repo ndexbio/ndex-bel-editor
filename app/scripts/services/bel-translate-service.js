@@ -117,23 +117,16 @@ angular.module('belEditApp')
         this.supports = [];
         this.statements = [];
         this.type = null;
-        this.uri = '';
         this.title = null;
         this.contributors = [];
         this.identifier = '';
+        this.description = null;
         this.selected = false;
       };
 
       SM.Citation.prototype = {
 
         constructor: SM.Citation,
-
-        setInfo: function (identifier, uri, type, contributors) {
-          this.contributors = contributors;
-          this.type = type;
-          this.uri = uri;
-          this.identifier = identifier;
-        },
 
         addStatement: function (statement) {
           this.statements.push(statement);
@@ -458,7 +451,7 @@ angular.module('belEditApp')
             this.prefix &&
             this.prefix === 'bel') {
 
-            return this.abbreviate(this.name);
+            return SM.abbreviate(this.name);
 
           } else if (this.prefix) {
             return this.prefix + ':' + this.name;
@@ -497,21 +490,57 @@ angular.module('belEditApp')
       // inherit from Term
       SM.Relationship.prototype = new SM.Term();
 
-      SM.makeRelationship = function (prefix, name) {
+      SM.makeRelationship = function (inputString) {
         var term = new SM.Relationship();
-        term.prefix = prefix;
-        term.name = name;
+        var result = inputString.split(':');
+        if (result.length === 1){
+          term.name = result[0];
+        } else {
+          term.prefix = result[0];
+          term.name = result[1];
+        }
+
         return term;
       };
 
-      SM.makeFT = function (fn, parameters) {
+      SM.makeFT = function (fn, args) {
         var func = new SM.Func();
-        func.prefix = 'bel';
-        func.name = fn;
+        var result = fn.split(':');
+        if (result.length === 1){
+          func.name = result[0];
+        } else {
+          func.prefix = result[0];
+          func.name = result[1];
+        }
         var ft = new SM.FunctionTermTemplate();
         ft.function = func;
-        ft.parameters = parameters;
+        ft.parameters = [];
+        for (var i= 0; i < args.length; i++){
+          console.log('arg: ' + JSON.stringify(args[i]));
+          ft.parameters.push(SM.makeTerm(args[i]));
+        }
+
         return ft;
+      };
+
+      SM.makeTerm = function(parameter){
+        if (typeof parameter === 'object') {
+          return SM.makeFT(parameter.f, parameter.args);
+        } else {
+          return SM.makeBaseTerm(parameter);
+        }
+      };
+
+      SM.makeBaseTerm = function(inputString){
+        var term = new SM.Term();
+        var result = inputString.split(':');
+        if (result.length === 1){
+          term.name = result[0];
+        } else {
+          term.prefix = result[0];
+          term.name = result[1];
+        }
+        return term;
       };
 
       SM.blankTerm = function () {
@@ -707,6 +736,10 @@ angular.module('belEditApp')
       SM.CxInputTranslator = function (cx) {
         this.cx = cx;
         this.model = new SM.Model();
+        this.idCitationMap = {};
+        this.idSupportMap = {};
+        this.idStatementMap = {};
+        this.idFunctionTermMap = {};
         //this.log = log;
         console.log('translator created');
       };
@@ -723,7 +756,7 @@ angular.module('belEditApp')
                 var items = fragment[aspectName];
                 for (var j = 0; j < items.length; j++) {
                   var item = items[j];
-                  this.addCxElement(aspectName, item);
+                  this.handleCxElement(aspectName, item);
                 }
               }
             }
@@ -731,7 +764,7 @@ angular.module('belEditApp')
         },
 
 
-        addCxElement: function (aspectName, element) {
+        handleCxElement: function (aspectName, element) {
           console.log('aspect ' + aspectName);
           if (aspectName === 'nodes') {
             this.handleCxNode(element);
@@ -755,55 +788,168 @@ angular.module('belEditApp')
             this.handleCxNodeSupport(element);
           } else if (aspectName === 'edgeSupports') {
             this.handleCxEdgeSupport(element);
+          } else if (aspectName === 'functionTerms') {
+            this.handleCxFunctionTerm(element);
+          }
+          // for each statement,
+          // find the function terms for the subject and object
+          // and copy the structures in place of the ids.
+          for (var statementId in this.idStatementMap){
+            var statement = this.idStatementMap[statementId];
+            var subject = this.idFunctionTermMap[statement.s];
+            var object = this.idFunctionTermMap[statement.o];
+            if (subject){
+              statement.s = Object.assign({}, subject);
+            }
+
+            if (object){
+              statement.o = Object.assign({}, object);
+            }
           }
         },
 
-        handleCxNode: function (element) {
-          console.log('node ' + element['@id']);
+        findOrCreateCitation: function(id){
+          var citation = this.idCitationMap[id];
+          if (!citation){
+            citation = new SM.Citation();
+            this.idCitationMap[id] = citation;
+            this.model.citations.push(citation);
+          }
+          return citation;
         },
 
-        handleCxEdge: function (element) {
-          console.log('edge ' + element['@id']);
-
+        findOrCreateSupport: function(id){
+          var support = this.idSupportMap[id];
+          if (!support){
+            support = new SM.Support();
+            this.idSupportMap[id] = support;
+          }
+          return support;
         },
 
-        handleCxNodeAttribute: function (element) {
-          console.log('node att ' + element.po + ' ' + element.n + ' = ' + element.v);
-
+        // This is used with the CX edge id that corresponds to the statement
+        findOrCreateStatement: function(id){
+          var statement = this.idStatementMap[id];
+          if (!statement){
+            statement = new SM.Statement();
+            this.idStatementMap[id] = statement;
+          }
+          return statement;
         },
 
-        handleCxEdgeAttribute: function (element) {
-          console.log('edge att ' + element.po + ' ' + element.n + ' = ' + element.v);
+        /*
+         this.type <-> dc:type
+         this.title <-> dc:title
+         this.contributors = [];  <-> dc:contributor
+         this.identifier = ''; <-> dc:identifier
+         this.description <-> dc:description
+         */
+        handleCxCitation: function (element) {
+          var citId = element['@id'];
+          console.log('citation ' + citId);
+          var citation = this.findOrCreateCitation(citId);
 
+          if (element['dc:title']){
+            citation.title = element['dc:title'];
+          }
+          if (element['dc:identifier']){
+            citation.identifier = element['dc:identifier'];
+          }
+          if (element['dc:type']){
+            citation.type = element['dc:title'];
+          }
+          if (element['dc:description']){
+            citation.identifier = element['dc:description'];
+          }
+          var contrib = element['dc:contributor'];
+          if (contrib){
+            if (Array.isArray(contrib)){
+              citation.contributors = contrib;
+            } else {
+              citation.contributors.push(contrib);
+            }
+          }
         },
 
         handleCxSupport: function (element) {
-          console.log('support ' + element['@id']);
-
+          var supportId = element['@id'];
+          console.log('support ' + supportId);
+          var support = this.findOrCreateSupport(supportId);
+          support.text = element.text;
+          if (element.citation){
+            var citation = this.findOrCreateCitation(element.citation);
+            support.citation = citation;
+            citation.addSupport(support);
+          }
+          return support;
         },
 
-        handleCxNodeCitation: function (element) {
-          console.log('node citation ' + element.po + ' ' + JSON.stringify(element.citations));
+        handleCxFunctionTerm: function(element){
+          var nodeId = element.po;
+          console.log('ft for node ' + nodeId + ' ' + element.f + ' ' + JSON.stringify(element.args));
+          this.idFunctionTermMap[nodeId] = new SM.makeFT(element.f, element.args);
+        },
 
+        handleCxEdge: function (element) {
+          var statementId = element['@id'];
+          console.log('edge ' + statementId);
+          var statement = this.findOrCreateStatement(statementId);
+          statement.s = element.s;
+          statement.o = element.t;
+          statement.r = SM.makeRelationship(element.i);
+          return statement;
+        },
+
+        handleCxEdgeAttribute: function (element) {
+          var statementId = element.po;
+          console.log('edge att ' + element.po + ' ' + element.n + ' = ' + element.v);
+          var statement = this.findOrCreateStatement(statementId);
+          statement.props[element.n] = element.v;
         },
 
         handleCxEdgeCitation: function (element) {
+          var statementId = element.po;
+          var citationId = element.citations[0];
           console.log('edge citation ' + element.po + ' ' + JSON.stringify(element.citations));
-
-        },
-
-        handleCxNodeSupport: function (element) {
-          console.log('node support ' + element.po + ' ' + JSON.stringify(element.supports));
+          var statement = this.findOrCreateStatement(statementId);
+          var citation = this.findOrCreateCitation(citationId);
+          citation.addStatement(statement);
 
         },
 
         handleCxEdgeSupport: function (element) {
           console.log('edge support ' + element.po + ' ' + JSON.stringify(element.supports));
+          var statementId = element.po;
+          var supportId = element.supports[0];
+          var statement = this.findOrCreateStatement(statementId);
+          var support = this.findOrCreateSupport(supportId);
+          support.addStatement(statement);
 
         },
 
-        handleCxCitation: function (element) {
-          console.log('citation ' + element['@id']);
+        handleCxNode: function (element) {
+          console.log('node ' + element['@id']);
+          // Do Nothing
+        },
+
+        handleCxNodeAttribute: function (element) {
+          console.log('node att ' + element.po + ' ' + element.n + ' = ' + element.v);
+          // do Nothing at this time
+          // TODO: handle 'subject only' statements
+
+        },
+
+        handleCxNodeCitation: function (element) {
+          console.log('node citation ' + element.po + ' ' + JSON.stringify(element.citations));
+          // do Nothing at this time
+          // TODO: handle 'subject only' statements
+
+        },
+
+        handleCxNodeSupport: function (element) {
+          console.log('node support ' + element.po + ' ' + JSON.stringify(element.supports));
+          // do Nothing at this time
+          // TODO: handle 'subject only' statements
 
         },
 
@@ -1063,11 +1209,10 @@ angular.module('belEditApp')
 
       this.makeFunctionTermTemplates = function () {
         return [
-          SM.makeFT('proteinAbundance', [SM.blankTerm()]),
-          SM.makeFT('rnaAbundance', [SM.blankTerm()]),
-          SM.makeFT('abundance', [SM.blankTerm()]),
-          SM.makeFT('kinaseActivity',
-            [SM.makeFT('proteinAbundance', [SM.blankTerm()])])
+          SM.makeFT('bel:proteinAbundance', ['?:?']),
+          SM.makeFT('bel:rnaAbundance', ['?:?']),
+          SM.makeFT('bel:abundance', ['?:?']),
+          SM.makeFT('bel:kinaseActivity', [{'f': 'bel:proteinAbundance', 'args': ['?:?']}])
         ];
       };
 

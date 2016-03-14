@@ -240,7 +240,7 @@ angular.module('belEditApp')
 
         cm = BelTranslateService.cxToSm(editor.cxLoaded, editor.log);
         editor.log.push('finished loading');
-        $scope.editor.model = cm;
+        editor.model = cm;
         BelModelService.statementModel = cm;
       };
 

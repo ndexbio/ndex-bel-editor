@@ -6,12 +6,14 @@
   <p>{{line}}</p>
 </div>
 
+<!--
 <div class="json-block" ng-show="editor.prettyCxLoaded">
   <h3>This is the CX loaded from NDEx</h3>
   <div class="preformatted">
     {{editor.prettyCxLoaded}}
   </div>
 </div>
+-->
 
 <script type="text/ng-template" id="term_renderer.html">
   <span ng-if="term.name" ng-init="bt=term" ng-include="'base_term_renderer.html'"></span>
@@ -54,7 +56,7 @@
 <div class="row">
 
   <!--  Left Column for Drag and Drop Pallets and Scratchpad -->
-  <!--
+
   <div class='col-md-2'>
 
     <div class='scratchpad-drop'
@@ -109,10 +111,10 @@
     </div>
 
   </div>
-  -->
+
 
   <!--  Middle Column for Editing -->
-  <!--
+
 
   <div class='col-md-8 AlignCenter edit-model-display'>
     <div class="support">
@@ -122,10 +124,10 @@
     </div>
     </div>
   </div>
-  -->
+
 
   <!--  Right Column for Citations and Supports -->
-  <!--
+
   <div class='col-md-2 AlignCenter edit-model-display'>
     <uib-accordion>
       <uib-accordion-group ng-repeat="citation in editor.model.citations">
@@ -144,7 +146,7 @@
       </uib-accordion-group>
     </uib-accordion>
   </div>
-  -->
+
 
 </div>
 
