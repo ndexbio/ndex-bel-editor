@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc function
- * @name belEditApp.controller:AboutCtrl
+ * @name netWorkBenchApp.controller:AboutCtrl
  * @description
  * # AboutCtrl
- * Controller of the belEditApp
+ * Controller of the netWorkBenchApp
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .controller('AboutCtrl', function () {
     this.awesomeThings = [
       'HTML5 Boilerplate',

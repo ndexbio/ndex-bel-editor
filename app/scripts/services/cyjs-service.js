@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc service
- * @name belEditApp.CyjsService
+ * @name netWorkBenchApp.CyjsService
  * @description
  * # CyjsService
- * Factory in the belEditApp.
+ * Factory in the netWorkBenchApp.
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .factory('CyjsService', function () {
     // Service logic
     // ...

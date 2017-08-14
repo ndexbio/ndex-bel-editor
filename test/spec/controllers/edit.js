@@ -3,7 +3,7 @@
 describe('Controller: EditCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('belEditApp'));
+  beforeEach(module('netWorkBenchApp'));
 
   var EditCtrl,
     scope;

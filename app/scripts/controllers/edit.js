@@ -2,10 +2,10 @@
 
 /**
  * @ngdoc function
- * @name belEditApp.controller:EditCtrl
+ * @name netWorkBenchApp.controller:EditCtrl
  * @description
  * # EditCtrl
- * Controller of the belEditApp
+ * Controller of the netWorkBenchApp
  */
 var cns, cm, cxLoaded, cxOutput;
 cns = {};
@@ -13,7 +13,7 @@ cm = {};
 cxLoaded = [];
 cxOutput = [];
 
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .controller('EditCtrl',
   ['ndexService',
     '$routeParams',
@@ -44,6 +44,7 @@ angular.module('belEditApp')
       editor.prettyCxLoaded = 'Placeholder for Pretty CX Loaded';
       editor.model = {};
       editor.log = [];
+      editor.myNdex = ndexService.ndex;
 
 
       /*

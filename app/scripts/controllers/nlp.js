@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc function
- * @name belEditApp.controller:NLPCtrl
+ * @name netWorkBenchApp.controller:NLPCtrl
  * @description
  * # NLPCtrl
- * Controller of the belEditApp
+ * Controller of the netWorkBenchApp
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .controller('NLPCtrl', ['$scope', '$http', function ($scope, $http) {
     $scope.pmcXML = false;
     $scope.reachJSON = false;

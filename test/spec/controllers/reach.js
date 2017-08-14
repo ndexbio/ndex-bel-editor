@@ -3,7 +3,7 @@
 describe('Controller: NLPCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('belEditApp'));
+  beforeEach(module('netWorkBenchApp'));
 
   var ReachCtrl,
     scope;

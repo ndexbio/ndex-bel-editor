@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc service
- * @name belEditApp.ReachService
+ * @name netWorkBenchApp.ReachService
  * @description
  * # ReachService
- * Service in the belEditApp.
+ * Service in the netWorkBenchApp.
  */
 /*
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .service('ReachService',  ['$http', function ($http) {
 */
 /*    Send NXML File

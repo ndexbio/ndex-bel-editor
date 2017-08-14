@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc directive
- * @name belEditApp.directive:beleditForgetPasswordPanel
+ * @name netWorkBenchApp.directive:beleditForgetPasswordPanel
  * @description
  * # beleditForgetPasswordPanel
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .directive('beleditForgetPasswordPanel', function () {
     return {
       template: '<div></div>',

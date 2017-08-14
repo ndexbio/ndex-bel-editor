@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc service
- * @name belEditApp.PMCService
+ * @name netWorkBenchApp.PMCService
  * @description
  * # PMCService
- * Service in the belEditApp.
+ * Service in the netWorkBenchApp.
  */
 /*
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .service('PMCService', ['$http', function ($http) {
     // AngularJS will instantiate a singleton by calling "new" on this function
 

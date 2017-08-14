@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc service
- * @name belEditApp.BelTranslateService
+ * @name netWorkBenchApp.BelTranslateService
  * @description
  * # BelTranslateService
- * Service in the belEditApp.
+ * Service in the netWorkBenchApp.
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .service('BelTranslateService',
   [
     '$http',

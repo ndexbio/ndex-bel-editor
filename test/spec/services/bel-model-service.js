@@ -3,7 +3,7 @@
 describe('Service: BelModelService', function () {
 
   // load the service's module
-  beforeEach(module('belEditApp'));
+  beforeEach(module('netWorkBenchApp'));
 
   // instantiate service
   var BelModelService;

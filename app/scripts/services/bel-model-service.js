@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc service
- * @name belEditApp.BelModelService
+ * @name netWorkBenchApp.BelModelService
  * @description
  * # BelModelService
- * Service in the belEditApp.
+ * Service in the netWorkBenchApp.
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .service('BelModelService', function () {
 
     // This service holds the current data models representing the network that is being edited

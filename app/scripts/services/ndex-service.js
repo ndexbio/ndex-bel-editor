@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc service
- * @name belEditApp.ndexService
+ * @name netWorkBenchApp.ndexService
  * @description
  * # ndexService
- * Service in the belEditApp.
+ * Service in the netWorkBenchApp.
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .service('ndexService', ['$http', '$q', function ($http, $q) {
     // AngularJS will instantiate a singleton by calling "new" on this function
 
@@ -22,6 +22,8 @@ angular.module('belEditApp')
     this.getNdexServerUri = function () {
       return ndexServerUri;
     };
+
+    this.client = ndex;
 
     /*---------------------------------------------------------------------*
      * Networks

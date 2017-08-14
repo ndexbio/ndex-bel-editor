@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc service
- * @name belEditApp.CytoscapejsService
+ * @name netWorkBenchApp.CytoscapejsService
  * @description
  * # CytoscapejsService
- * Service in the belEditApp.
+ * Service in the netWorkBenchApp.
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .service('CytoscapejsService', function () {
     // AngularJS will instantiate a singleton by calling "new" on this function
   });

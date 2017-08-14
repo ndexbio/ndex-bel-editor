@@ -2,15 +2,15 @@
 
 /**
  * @ngdoc overview
- * @name belEditApp
+ * @name netWorkBenchApp
  * @description
- * # belEditApp
+ * # netWorkBenchApp
  *
  * Main module of the application.
  */
 
-var belEditApp = angular
-  .module('belEditApp', [
+var netWorkBenchApp = angular
+  .module('netWorkBenchApp', [
     'ngAnimate',
     'ngCookies',
     'ngResource',
@@ -55,7 +55,7 @@ var belEditApp = angular
 
 
 //Internet Explorer solution???
-belEditApp.config(['$httpProvider', function ($httpProvider) {
+netWorkBenchApp.config(['$httpProvider', function ($httpProvider) {
 
   $httpProvider.defaults.useXDomain = true;
 
@@ -77,7 +77,7 @@ belEditApp.config(['$httpProvider', function ($httpProvider) {
 ]);
 
 
-belEditApp.service('sharedProperties', function () {
+netWorkBenchApp.service('sharedProperties', function () {
   // this service is going to act as a general global variable throughout the application
   // should consider implementing some degree of relationship with localStorage to guard against
   // refreshes. In fact, we might just use cookies or something else because we may not want this to be permanent

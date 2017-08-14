@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc function
- * @name belEditApp.controller:MainCtrl
+ * @name netWorkBenchApp.controller:MainCtrl
  * @description
  * # MainCtrl
- * Controller of the belEditApp
+ * Controller of the netWorkBenchApp
  */
-angular.module('belEditApp')
+angular.module('netWorkBenchApp')
   .controller(
   'MainCtrl',
   ['ndexService', '$location', '$scope', '$http', 'sharedProperties',

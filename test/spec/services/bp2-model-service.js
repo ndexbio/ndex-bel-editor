@@ -3,7 +3,7 @@
 describe('Service: Bp2ModelService', function () {
 
   // load the service's module
-  beforeEach(module('belEditApp'));
+  beforeEach(module('netWorkBenchApp'));
 
   // instantiate service
   var Bp2ModelService;
