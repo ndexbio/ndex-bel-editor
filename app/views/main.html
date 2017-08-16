@@ -3,18 +3,17 @@
   <div class='col-md-2'></div>
   <div class='col-md-8 AlignCenter'>
 
-    <p>account = {{signIn.accountName}}</p>
 
     <p>loggedIn = {{loggedIn}}</p>
 
     <p>foo = {{networkDisplay.foo}}</p>
 
-    <p>ndex uri = {{myNdex.getNdexServerUri()}}</p>
+    <p>ndex uri = {{networkDisplay.myNdex.ndexServerUri()}}</p>
 
-    <div ng-show="signIn.message">
-      <p>{{signIn.message}}</p>
-    </div>
+    <p>{{networkDisplay.summary.response}}</p>
 
+
+<!--
     <div ng-show="networkDisplay.networkSearchResults">
       <div ng-repeat="networkSummary in networkDisplay.networkSearchResults">
         <a ng-click="networkDisplay.editNetwork(networkSummary.externalId)">{{networkSummary.name}}</a>
@@ -23,7 +22,7 @@
     <div ng-show="networkDisplay.error">
       <p>{{networkDisplay.error}}</p>
     </div>
-
+-->
     <!--
     <div class='col-md-12' ng-show="!loggedIn">
       <div class="home-box home-margins">

@@ -35,6 +35,8 @@ angular.module('netWorkBenchApp')
       networkDisplay.searchString = '';
       networkDisplay.allSelected = false;
       networkDisplay.atLeastOneSelected = false;
+      networkDisplay.myNdex = ndexService.client;
+      networkDisplay.summary = null;
 
       networkDisplay.editNetwork = function (networkId) {
         $location.path('/edit/' + networkId);
@@ -65,11 +67,15 @@ angular.module('netWorkBenchApp')
           });
       };
 
-
+      ndexService.client.getNetworkSummary("aa07df5d-6187-11e5-8ac5-06603eb7f303",
+        function(responseJSON) {
+        },
+        function(error){
+        });
       //---------------------------------------------
       // SignIn Handler
       //---------------------------------------------
-
+/*
       $scope.signIn = {};
       $scope.signIn.newUser = {};
       $scope.loggedIn = false;
@@ -119,6 +125,8 @@ angular.module('netWorkBenchApp')
         // if we reload and we have a current user, go ahead and search
         networkDisplay.searchNetworks();
       }
+*/
+      console.log(networkDisplay);
 
 
     }]);

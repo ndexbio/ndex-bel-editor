@@ -170,10 +170,28 @@
      * Convenient NDEx wrappers around XHR - private functions
      *---------------------------------------------------------------------*/
 
-    var ndexGet = function (url_tail){
-      var xhr = new XMLHttpRequest(),
-        method = "GET",
-        url = "https://" + clientSettings.ndexServerUri + url_tail;
+    var makeResponseHandler = function(success, failure){
+      return function(){
+        try {
+          if (httpRequest.readyState === XMLHttpRequest.DONE) {
+            if (httpRequest.status === 200) {
+              success();
+            } else {
+              failure();
+            }
+          }
+        }
+        catch( e ) {
+          // TODO - throw a standard NDEx error??
+          alert('Caught Exception: ' + e.description);
+        }
+      };
+    };
+
+    var ndexGet = function (url_tail, query_args, success, failure){
+      var xhr = new XMLHttpRequest();
+      var url = "http://" + clientSettings.ndexServerUri + "/v2" + url_tail;
+      httpRequest.onreadystatechange = makeResponseHandler(success, failure);
       xhr.open(method,url,true);
       xhr.send();
       return xhr;
@@ -188,8 +206,8 @@
      * Networks
      *---------------------------------------------------------------------*/
 
-    _ndexClientObject.getNetworkSummary = function (networkId) {
-      return ndexGet('/network/' + networkId);
+    _ndexClientObject.getNetworkSummary = function (networkId, success, failure) {
+      return ndexGet('/network/' + networkId, null, success, failure);
     };
 
     /*---------------------------------------------------------------------*
