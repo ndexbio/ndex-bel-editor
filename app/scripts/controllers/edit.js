@@ -25,120 +25,153 @@ angular.module('networkbenchApp')
          if edge predicate - or other property - is modified, use table method to update
          if node property is modified, use table meho
          */
-        $scope.tester = {};
-        var tester = $scope.tester;
-        tester.cyrest_available = null;
-        tester.cyndex_version = null;
-        tester.test = "test";
-
-        tester.get_cytoscape_status = function () {
-
-        };
+        $scope.cyRestAvailable = null;
+        $scope.cyNDExVersion = null;
+        //$scope.editor = {};
+        //var editor = $scope.editor;
+        $scope.ndexServer = null;
 
         var init = function () {
           console.log("initializing");
-          $.get({
-            url: 'http://localhost:1234/v1',
-            success: function (data) {
-              console.log(JSON.stringify(data));
-              $scope.tester.cyrest_available = "blah";
-              $.get({
-                url: 'http://localhost:1234/cyndex2/v1',
-                success: function (data) {
-                  console.log(JSON.stringify(data));
-                  console.log(tester.test);
-                  $scope.$apply();
-                  editor.getNetworksInCytoscape();
-                }
-              });
-            },
-            error: function () {
-              tester.cyrest_available = null;
+          $http({
+              method: "GET",
+              url: 'http://localhost:1234/v1'
             }
-          });
-
+          ).then(
+            function () {
+              //console.log(JSON.stringify(response));
+              console.log("CyRest present, checking cyndex2");
+              $http({
+                method: "GET",
+                url: 'http://localhost:1234/cyndex2/v1'
+              }).then(
+                function (response) {
+                  console.log(response);
+                  $scope.cyNDExVersion = response.data.appVersion;
+                  $scope.cyRestAvailable = true;
+                  console.log("cyndex2 " + $scope.cyNDExVersion + " present");
+                  $scope.getNetworksInCytoscape();
+                },
+                function () {
+                  console.log("CyNdex2 not present");
+                }
+              );
+            },
+            function () {
+              $scope.cyRestAvailable = null;
+              console.log("CyRest not present");
+            }
+          );
         };
-
-        //-------------------------
-
-        $scope.editor = {};
-        var editor = $scope.editor;
-        editor.ndexServer = null;
 
         /*
          get the networks in Cytoscape, display for selection.
          */
-        editor.networksInCytoscape = [];
-        editor.getNetworksInCytoscape = function () {
+        $scope.networksInCytoscape = [];
+        $scope.getNetworksInCytoscape = function () {
           $http({
             method: 'GET',
             url: "http://localhost:1234/v1/networks.names"
           }).then(function (response) {
-            editor.networksInCytoscape = response.data;
-            console.log(editor.networksInCytoscape);
+            $scope.networksInCytoscape = response.data;
+            console.log($scope.networksInCytoscape);
             //$scope.$apply();
           });
         };
 
-        /*
-         select the network and get the edges and nodes
-         */
-        editor.currentNetworkObject = null;
-        editor.currentNetworkSUID = null;
-        editor.currentNetworkName = null;
-        editor.currentNetwork = null;
-        /*
-         when we have a current network, we will display the editor
-         and get the information from Cytoscape
-         */
-        editor.nodeSUIDs = [];
-        editor.edgeSUIDs = [];
-        editor.edges = {};
-        editor.nodes = {};
 
-        editor.getCurrentNetwork = function () {
-          editor.currentNetworkSUID = editor.currentNetworkObject['SUID'];
-          editor.currentNetworkName = editor.currentNetworkObject.name;
-          editor.getNetwork(editor.currentNetworkSUID);
+        $scope.currentNetworkObject = null;
+        $scope.currentNetworkSUID = null;
+        $scope.currentNetworkName = null;
+        $scope.currentNetwork = null;
+        $scope.edges = {};
+        $scope.nodes = {};
+
+
+        /*
+         called when a network is selected for editing
+         TODO: refactor, seems unneccessary
+
+         */
+        $scope.getCurrentNetwork = function () {
+          $scope.currentNetworkSUID = $scope.currentNetworkObject['SUID'];
+          $scope.currentNetworkName = $scope.currentNetworkObject.name;
+          $scope.getNetwork($scope.currentNetworkSUID);
         };
 
-        editor.getNetwork = function (networkId) {
-          console.log("trying to get network");
-          editor.currentNetwork = editor.CurrentNetworkName;
-
+        /*
+         get the network in cyjs format and populate the edges and nodes maps
+         */
+        $scope.getNetwork = function (networkSuid) {
+          console.log("getting network" + networkSuid);
           $http({
-            method: 'GET',
-            url: "http://localhost:1234/v1/networks/" + networkId + "/tables/defaultnode"
-          }).then(function (response) {
-            // load the map of node SUIDs to nodes
-            var nodelist = response.data;
-            for (var n = 0; n < nodelist.length; n++) {
-              var node = nodelist[n];
-              editor.nodes[node.SUID] = node;
-            }
-            $http({
-              url: "http://localhost:1234/v1/networks/" + networkId + "/edges",
-              method: 'GET'
-            }).then(function (response) {
-              // now get the edge SUIDs, get the corresponding edge, and fill the edge map.
-              editor.edgeSUIDs = response.data;
-              for (var e = 0; e < editor.edgeSUIDs.length; e++) {
-                var edgeSUID = editor.edgeSUIDs[e];
-                $http({
-                  method: 'GET',
-                  url: "http://localhost:1234/v1/networks/" + networkId + "/edges/" + edgeSUID
-                }).then(function (response) {
-                  var edge = response.data;
-                  editor.edges[edge.SUID] = edge;
-                })
+            method: "GET",
+            url: "http://localhost:1234/v1/networks.json?column=SUID&query=" + networkSuid
+          }).then(
+            function (response) {
+              //console.log(response);
+              var network = response.data[0].elements;
+              $scope.currentNetwork = network;
+              console.log($scope.currentNetwork);
+              var nodelist = network.nodes;
+              var edgelist = network.edges;
+              for (var n = 0; n < nodelist.length; n++) {
+                var node = nodelist[n].data;
+                $scope.nodes[node['SUID']] = node;
               }
+              for (var e = 0; n < edgelist.length; n++) {
+                var edge = edgelist[e].data;
+                $scope.edges[edge['SUID']] = edge;
+              }
+            },
+            function (response) {
+              console.log("error in getting network");
+              console.log(response);
             });
-
-          });
-
-
         };
 
+        $scope.getSourceNode = function (edge) {
+          return $scope.nodes[edge.source];
+        };
+
+        $scope.getTargetNode = function (edge) {
+          return $scope.nodes[edge.target];
+        };
+
+
+        /*          $http({
+         method: 'GET',
+         url: "http://localhost:1234/v1/networks/" + networkId + "/tables/defaultnode"
+         }).then(function (response) {
+         // load the map of node SUIDs to nodes
+         var nodelist = response.data;
+         for (var n = 0; n < nodelist.length; n++) {
+         var node = nodelist[n];
+         $scope.nodes[node.SUID] = node;
+         }
+         $http({
+         url: "http://localhost:1234/v1/networks/" + networkId + "/edges",
+         method: 'GET'
+         }).then(function (response) {
+         // now get the edge SUIDs, get the corresponding edge, and fill the edge map.
+         $scope.edgeSUIDs = response.data;
+         for (var e = 0; e < $scope.edgeSUIDs.length; e++) {
+         var edgeSUID = $scope.edgeSUIDs[e];
+         $http({
+         method: 'GET',
+         url: "http://localhost:1234/v1/networks/" + networkId + "/edges/" + edgeSUID
+         }).then(function (response) {
+         var edge = response.data;
+         $scope.edges[edge.SUID] = edge;
+         })
+         }
+         });
+
+         });
+
+
+         };
+         */
         /*------------------------------------------------------------------------------------
          Actions
 
@@ -234,12 +267,12 @@ angular.module('networkbenchApp')
 
          $scope.onDropToScratchpad = function (dragged) {
          if (dragged && dragged instanceof BelTranslateService.BaseTerm) {
-         $scope.editor.termScratchpad.push(angular.copy(dragged));
+         $scope.$scope.termScratchpad.push(angular.copy(dragged));
          }
          };
 
          $scope.setCurrentSupport = function (support) {
-         $scope.editor.currentSupport = support;
+         $scope.$scope.currentSupport = support;
          };
 
 

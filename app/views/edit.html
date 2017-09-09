@@ -8,8 +8,8 @@
        ng-mouseover="overclass='en-highlight'"
        ng-mouseleave="overclass=''"
        ng-drag="true"
-       ng-drag-data="en">
-    {{en.toString('SHORT')}}
+       ng-drag-data="node">
+    {{node.name}}
   </div>
 </script>
 <!--
@@ -27,41 +27,37 @@
 
 <script type="text/ng-template" id="edge_renderer.html">
   <p>
-    // source
-    //<span ng-include="'edge_node_renderer.html'"></span>
-
-    // predicate
-    {{edgeSUID}}
-    // target
-    //<span ng-bind = "en=edge.s" ng-include="'edge_node_renderer.html'"></span>
+    <span ng-bind="node=getSourceNode(edge)" ng-include="'edge_node_renderer.html'"></span>
+    {{edge.shared_interaction}}
+    <span ng-bind="node=getTargetNode(edge)" ng-include="'edge_node_renderer.html'"></span>
   </p>
 </script>
 
 <!-- if CyRest then show network selector, otherwise show no-cytoscape> -->
-<div ng-hide="tester.cyrest_available">
-Cytoscape is either not running or does not have CyRest installed {{tester}}
+<div ng-hide="cyRestAvailable">
+Cytoscape 3.6+ is either (1) not running or (2) does not have CyRest installed or (3) does not have CyNDEx2 installed
 </div>
 <!-- Network Selector -->
-<div ng-show="tester.cyrest_available">
-<!-- Cytoscape is active, show selector here... -->
+<div ng-show="cyRestAvailable">
+<!-- Cytoscape is available via cyRest and cyNDEx2, show selector here... -->
 <select id="networkselector"
         name="Network Selector"
-        ng-model="editor.currentNetworkObject"
-        ng-change="editor.getCurrentNetwork()"
-        ng-options="networkObject.name for networkObject in editor.networksInCytoscape">
+        ng-model="currentNetworkObject"
+        ng-change="getCurrentNetwork()"
+        ng-options="networkObject.name for networkObject in networksInCytoscape">
 </select>
 </div>
 
 <!-- Editor -->
 
-<div ng-show="editor.currentNetworkSUID" class="row">
-  {{editor.currentNetworkName}}
+<div ng-show="currentNetworkSUID" class="row">
+  {{currentNetworkName}}
 
   <!--  Left Column for Editing -->
 
 
   <div class='col-md-9 AlignCenter edit-model-display'>
-      <div ng-repeat="edgeSUID in editor.edgeSUIDs" ng-include="'edge_renderer.html'">
+      <div ng-repeat="edgeSUID in edgeSUIDs" ng-include="'edge_renderer.html'">
       </div>
   </div>
 
@@ -70,7 +66,7 @@ Cytoscape is either not running or does not have CyRest installed {{tester}}
 
   <div class='col-md-3 AlignCenter network-and-nodes'>
     <div class='table-node-template'
-         ng-repeat='node in editor.nodes'
+         ng-repeat='node in nodes'
          ng-drag="true"
          ng-drag-data="node"
          ng-class="overclass"
