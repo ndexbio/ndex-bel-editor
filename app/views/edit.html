@@ -1,154 +1,88 @@
-<p ng-show="editor.networkSummary">Citations for {{editor.networkSummary.name}}</p>
-<p>On NDEx Server {{editor.ndexUri}}</p>
-<a ng-click="editor.toOutputCX()">generate Output CX</a>
+<!-- Templates -->
 
-<div ng-repeat="line in editor.log">
-  <p>{{line}}</p>
-</div>
-
-<!--
-<div class="json-block" ng-show="editor.prettyCxLoaded">
-  <h3>This is the CX loaded from NDEx</h3>
-  <div class="preformatted">
-    {{editor.prettyCxLoaded}}
-  </div>
-</div>
--->
-
-<script type="text/ng-template" id="term_renderer.html">
-  <span ng-if="term.name" ng-init="bt=term" ng-include="'base_term_renderer.html'"></span>
-  <span ng-if="term.function" ng-init="ft=term" ng-include="'function_term_renderer.html'"></span>
-</script>
-
-<script type="text/ng-template" id="base_term_renderer.html">
-  <div class='base-term'
+<script type="text/ng-template" id="edge_node_renderer.html">
+  <div class='edge_node'
        ng-class="overclass"
        ng-drop="true"
-       ng-drop-success="onDropTerm($data,bt)"
-       ng-mouseover="overclass='bt-highlight'"
+       ng-drop-success="onDropNode($data,en)"
+       ng-mouseover="overclass='en-highlight'"
        ng-mouseleave="overclass=''"
        ng-drag="true"
-       ng-drag-data="bt">
-    {{bt.toString('SHORT')}}
+       ng-drag-data="en">
+    {{en.toString('SHORT')}}
   </div>
 </script>
-
-<script type="text/ng-template" id="function_term_renderer.html">
-  <span class='function-term'
+<!--
+<script type="text/ng-template" id="table_node_renderer.html">
+  <span class='table_node'
         ng-drag="true"
-        ng-drag-data="ft"
+        ng-drag-data="tn"
         ng-drop="true"
-        ng-drop-success="onDropFT($data,ft)"
+        ng-drop-success="onDropFT($data,tn)"
         ng-class="overclass"
-        ng-mouseover="overclass='ft-highlight'"
-        ng-mouseleave="overclass=''">{{ft.function.toString('SHORT')}}</span>(<span ng-repeat="term in ft.parameters"
-                                                                                    ng-include="'term_renderer.html'"></span>)
-</script>
+        ng-mouseover="overclass='tn-highlight'"
+        ng-mouseleave="overclass=''">
+    {{en.toString('SHORT')}}</span>(<span ng-repeat="attribute in tn.attributes" ng-include="'table_node_renderer.html'"></span>)
+</script>-->
 
-<script type="text/ng-template" id="statement_renderer.html">
+<script type="text/ng-template" id="edge_renderer.html">
   <p>
-    <span ng-repeat="term in [statement.s, statement.r, statement.o]" ng-include="'term_renderer.html'"></span>
+    // source
+    //<span ng-include="'edge_node_renderer.html'"></span>
+
+    // predicate
+    {{edgeSUID}}
+    // target
+    //<span ng-bind = "en=edge.s" ng-include="'edge_node_renderer.html'"></span>
   </p>
 </script>
 
+<!-- if CyRest then show network selector, otherwise show no-cytoscape> -->
+<div ng-hide="tester.cyrest_available">
+Cytoscape is either not running or does not have CyRest installed {{tester}}
+</div>
+<!-- Network Selector -->
+<div ng-show="tester.cyrest_available">
+<!-- Cytoscape is active, show selector here... -->
+<select id="networkselector"
+        name="Network Selector"
+        ng-model="editor.currentNetworkObject"
+        ng-change="editor.getCurrentNetwork()"
+        ng-options="networkObject.name for networkObject in editor.networksInCytoscape">
+</select>
+</div>
+
+<!-- Editor -->
+
+<div ng-show="editor.currentNetworkSUID" class="row">
+  {{editor.currentNetworkName}}
+
+  <!--  Left Column for Editing -->
 
 
-<div class="row">
-
-  <!--  Left Column for Drag and Drop Pallets and Scratchpad -->
-
-  <div class='col-md-2'>
-
-    <div class='scratchpad-drop'
-         ng-drop="true"
-         ng-drop-success="onDropToScratchpad($data)"
-         ng-class="dropzone"
-         ng-mouseover="dropzone='scratchpad-drop-highlight'"
-         ng-mouseleave="dropzone=''">
-      Add to Terms
-    </div>
-
-    <div class="drag-pallete">
-      <h4>Terms</h4>
-
-      <div class='base-term-template'
-           ng-repeat='term in editor.termScratchpad'
-           ng-drag="true"
-           ng-drag-data="term"
-           ng-class="overclass"
-           ng-mouseover="overclass='bt-highlight'"
-           ng-mouseleave="overclass=''">
-        {{term.toString('SHORT')}}
+  <div class='col-md-9 AlignCenter edit-model-display'>
+      <div ng-repeat="edgeSUID in editor.edgeSUIDs" ng-include="'edge_renderer.html'">
       </div>
-    </div>
-
-    <div class="drag-pallete">
-      <h4>Relationships</h4>
-
-      <div class='base-term-template'
-           ng-repeat='term in editor.relationships'
-           ng-drag="true"
-           ng-drag-data="term"
-           ng-class="overclass"
-           ng-mouseover="overclass='bt-highlight'"
-           ng-mouseleave="overclass=''">
-        {{term.toString('SHORT')}}
-      </div>
-    </div>
-
-    <div class="drag-pallete">
-      <h4>Templates</h4>
-
-      <div class='function-term-template'
-           ng-repeat='term in editor.functionTermTemplates'
-           ng-drag="true"
-           ng-drag-data="term"
-           ng-class="overclass"
-           ng-mouseover="overclass='ft-highlight'"
-           ng-mouseleave="overclass=''">
-        {{term.toString('SHORT')}}
-      </div>
-    </div>
-
   </div>
 
 
-  <!--  Middle Column for Editing -->
+  <!--  Right Column for Network Info and Nodes -->
 
-
-  <div class='col-md-8 AlignCenter edit-model-display'>
-    <div class="support">
-    <p>{{editor.currentSupport.text}}</p>
-
-    <div ng-repeat="statement in editor.currentSupport.statements" ng-include="'statement_renderer.html'">
+  <div class='col-md-3 AlignCenter network-and-nodes'>
+    <div class='table-node-template'
+         ng-repeat='node in editor.nodes'
+         ng-drag="true"
+         ng-drag-data="node"
+         ng-class="overclass"
+         ng-mouseover="overclass='tn-highlight'"
+         ng-mouseleave="overclass=''">
+      {{node.name}}
     </div>
-    </div>
-  </div>
-
-
-  <!--  Right Column for Citations and Supports -->
-
-  <div class='col-md-2 AlignCenter edit-model-display'>
-    <uib-accordion>
-      <uib-accordion-group ng-repeat="citation in editor.model.citations">
-
-        <uib-accordion-heading>
-          {{citation.title || citation.identifier}}
-        </uib-accordion-heading>
-
-        <div ng-repeat='support in citation.supports' >
-              <span ng-click='setCurrentSupport(support)' ng-if="support.statements.length >0 ">
-                {{ '(' + support.statements.length + ') '}} {{ support.text | limitTo:50}}
-                </span>
-        </div>
-
-
-      </uib-accordion-group>
-    </uib-accordion>
   </div>
 
 
 </div>
+
 
 
 

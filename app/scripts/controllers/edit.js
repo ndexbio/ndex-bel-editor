@@ -2,266 +2,250 @@
 
 /**
  * @ngdoc function
- * @name netWorkBenchApp.controller:EditCtrl
+ * @name networkbenchApp.controller:EditCtrl
  * @description
  * # EditCtrl
- * Controller of the netWorkBenchApp
+ * Controller of the networkbenchApp
  */
-var cns, cm, cxLoaded, cxOutput;
-cns = {};
-cm = {};
-cxLoaded = [];
-cxOutput = [];
 
-angular.module('netWorkBenchApp')
+angular.module('networkbenchApp')
   .controller('EditCtrl',
-  ['ndexService',
-    '$routeParams',
-    '$scope',
-    '$http',
-    'BelTranslateService',
-    'BelModelService',
-    function (ndexService,
-              $routeParams,
-              $scope,
-              $http,
-              BelTranslateService,
-              BelModelService) {
+    ['$routeParams',
+      '$scope',
+      '$http',
+      function ($routeParams,
+                $scope,
+                $http) {
 
-      $scope.editor = {};
-      var editor = $scope.editor;
-      $scope.foo = 'this is foo';
-      $scope.oneAtATime = false;
-      $scope.draggedBaseTerm = false;
-      editor.termScratchpad = [];
-      editor.currentSupport = false;
+        /*
+         Test cytoscape_status   If it is 'cyRest', then we display network selector
+         If network selected, display editor
+         get nodes + edges
+         display edge table and node table
+         if edge predicate - or other property - is modified, use table method to update
+         if node property is modified, use table meho
+         */
+        $scope.tester = {};
+        var tester = $scope.tester;
+        tester.cyrest_available = null;
+        tester.cyndex_version = null;
+        tester.test = "test";
 
-      editor.queryErrors = [];
-      editor.networkId = $routeParams.networkId;
-      editor.network = {};
-      editor.networkSummary = {};
-      editor.cx = [];
-      editor.prettyCxLoaded = 'Placeholder for Pretty CX Loaded';
-      editor.model = {};
-      editor.log = [];
-      editor.myNdex = ndexService.ndex;
+        tester.get_cytoscape_status = function () {
 
+        };
 
-      /*
-       if (!editor.networkId) {
-
-       editor.networkId = 'd4e31748-9ec0-11e5-9dd0-0251251672f9'; // fries test output
-       //editor.networkId = 'ebc3355c-9d63-11e5-839e-0251251672f9';   // test file around BCL2 and BAD
-       }
-       */
-      editor.ndexUri = ndexService.getNdexServerUri();
-
-      editor.handleCheckboxClick = function (citation) {
-        console.log('citation checkbox click ' + citation.identifier);
-      };
-
-      editor.log.push('in edit.js');
-
-      console.log(editor);
-
-      /*
-       Issues:
-
-       focus on one citation at a time - dropdown to switch
-
-       page for new network from pmc
-
-       add-remove support
-       add blank statement
-       remove statement
-       clone statement
-       move statement
-       change statement active status - tf
-
-
-       Handle unconnected nodes -> special scratchpad?
-
-       Use the python service to manage a limited (1) set of accounts?
-
-       Save via CX
-       as bel
-       as kam with redundant edges merged
-       move this logic to python?
-       Reach
-       check handling of protein and gene product types, binding, sites, modifications, mutations, families
-
-
-       Allowed Drag and Drop Cases:
-
-       - Relationship onto Relationship -> replace
-       - BT onto BT -> replace
-       # Func onto Func -> replace
-
-       - ft to scratchpad
-       - bt to scratchpad
-
-       - FT template onto FT -> map BTs onto a deep copy of the FT as best as we can
-       p(?) + kin(p(X)) -> p(X)
-       kin(complex(p(?), p(?)) + p(X) -> kin(complex(p(X), p(?))
-
-       - FT onto FT -> replace
-
-       */
-
-      /*------------------------------------------------------------------------------------
-       Methods for Drag and Drop on this page
-       ------------------------------------------------------------------------------------*/
-
-      $scope.onDropTerm = function (draggedTerm, targetTerm) {
-        if (draggedTerm && targetTerm && draggedTerm !== targetTerm) {
-          console.log('dropped term ' + draggedTerm.toString('SHORT') + ' on ' + targetTerm.toString('SHORT'));
-          if (draggedTerm instanceof BelTranslateService.BaseTerm && targetTerm instanceof BelTranslateService.BaseTerm) {
-            copyTerm(draggedTerm, targetTerm);
-          } else if (draggedTerm instanceof BelTranslateService.Func && targetTerm instanceof BelTranslateService.Func) {
-            copyTerm(draggedTerm, targetTerm);
-          } else if (draggedTerm instanceof BelTranslateService.Relationship && targetTerm instanceof BelTranslateService.Relationship) {
-            copyTerm(draggedTerm, targetTerm);
-          }
-        }
-      };
-
-      var copyTerm = function (dragged, target) {
-        target.prefix = dragged.prefix;
-        target.name = dragged.name;
-      };
-
-      var copyFunctionTerm = function (dragged, target) {
-        var copy = angular.copy(dragged);
-        target.function = copy.function;
-        target.parameters = copy.parameters;
-      };
-
-      var copyFunctionTermTemplate = function (dragged, target) {
-        var copy = angular.copy(dragged);
-        var baseTerms = [];
-        gatherBaseTerms(target, baseTerms);
-        applyBaseTerms(baseTerms, copy);
-        target.function = copy.function;
-        target.parameters = copy.parameters;
-      };
-
-      var gatherBaseTerms = function (ft, baseTerms) {
-        angular.forEach(ft.parameters, function (parameter) {
-          if (parameter instanceof BelTranslateService.BaseTerm) {
-            baseTerms.push(parameter);
-          } else if (parameter instanceof BelTranslateService.FunctionTerm) {
-            gatherBaseTerms(parameter, baseTerms);
-          }
-        });
-      };
-
-      var applyBaseTerms = function (baseTerms, ft) {
-        angular.forEach(ft.parameters, function (parameter) {
-          if (parameter instanceof BelTranslateService.BaseTerm && parameter.name === '?' && parameter.prefix === '?') {
-            var bt = baseTerms.pop();
-            parameter.name = bt.name;
-            parameter.prefix = bt.prefix;
-          } else if (parameter instanceof BelTranslateService.FunctionTerm) {
-            applyBaseTerms(baseTerms, parameter);
-          }
-        });
-      };
-
-      $scope.onDropFT = function (draggedFunctionTerm, targetFunctionTerm) {
-        if (draggedFunctionTerm) {
-          console.log('dropped FT ' + draggedFunctionTerm.toString('SHORT') + ' on ' + targetFunctionTerm.toString('SHORT'));
-          if (draggedFunctionTerm instanceof BelTranslateService.FunctionTerm && draggedFunctionTerm !== targetFunctionTerm) {
-            if (draggedFunctionTerm instanceof BelTranslateService.FunctionTermTemplate) {
-              copyFunctionTermTemplate(draggedFunctionTerm, targetFunctionTerm);
-            } else {
-              copyFunctionTerm(draggedFunctionTerm, targetFunctionTerm);
+        var init = function () {
+          console.log("initializing");
+          $.get({
+            url: 'http://localhost:1234/v1',
+            success: function (data) {
+              console.log(JSON.stringify(data));
+              $scope.tester.cyrest_available = "blah";
+              $.get({
+                url: 'http://localhost:1234/cyndex2/v1',
+                success: function (data) {
+                  console.log(JSON.stringify(data));
+                  console.log(tester.test);
+                  $scope.$apply();
+                  editor.getNetworksInCytoscape();
+                }
+              });
+            },
+            error: function () {
+              tester.cyrest_available = null;
             }
-          }
-        }
-      };
+          });
 
-      $scope.onDropToScratchpad = function (dragged) {
-        if (dragged && dragged instanceof BelTranslateService.BaseTerm) {
-          $scope.editor.termScratchpad.push(angular.copy(dragged));
-        }
-      };
+        };
 
-      $scope.setCurrentSupport = function (support) {
-        $scope.editor.currentSupport = support;
-      };
+        //-------------------------
 
-      editor.relationships = [
-        BelTranslateService.makeRelationship('bel', 'increases'),
-        BelTranslateService.makeRelationship('bel', 'decreases'),
-        BelTranslateService.makeRelationship('bel', 'directlyIncreases'),
-        BelTranslateService.makeRelationship('bel', 'directlyDecreases')
-      ];
+        $scope.editor = {};
+        var editor = $scope.editor;
+        editor.ndexServer = null;
 
-      editor.functionTermTemplates = BelTranslateService.makeFunctionTermTemplates();
-      console.log('These are the function term templates:');
-      console.log(editor.functionTermTemplates);
+        /*
+         get the networks in Cytoscape, display for selection.
+         */
+        editor.networksInCytoscape = [];
+        editor.getNetworksInCytoscape = function () {
+          $http({
+            method: 'GET',
+            url: "http://localhost:1234/v1/networks.names"
+          }).then(function (response) {
+            editor.networksInCytoscape = response.data;
+            console.log(editor.networksInCytoscape);
+            //$scope.$apply();
+          });
+        };
 
-      /*------------------------------------------------------------------------------------
-       Output CX
-       ------------------------------------------------------------------------------------*/
+        /*
+         select the network and get the edges and nodes
+         */
+        editor.currentNetworkObject = null;
+        editor.currentNetworkSUID = null;
+        editor.currentNetworkName = null;
+        editor.currentNetwork = null;
+        /*
+         when we have a current network, we will display the editor
+         and get the information from Cytoscape
+         */
+        editor.nodeSUIDs = [];
+        editor.edgeSUIDs = [];
+        editor.edges = {};
+        editor.nodes = {};
 
-      editor.toOutputCX = function () {
-        if (editor.model) {
-          editor.cxOutput = BelTranslateService.smToCx(editor.model);
-          cxOutput = editor.cxOutput;
-          BelModelService.cxOutput = cxOutput;
-        }
-      };
+        editor.getCurrentNetwork = function () {
+          editor.currentNetworkSUID = editor.currentNetworkObject['SUID'];
+          editor.currentNetworkName = editor.currentNetworkObject.name;
+          editor.getNetwork(editor.currentNetworkSUID);
+        };
 
-      /*------------------------------------------------------------------------------------
-       Methods to be executed on page load
-       ------------------------------------------------------------------------------------*/
+        editor.getNetwork = function (networkId) {
+          console.log("trying to get network");
+          editor.currentNetwork = editor.CurrentNetworkName;
 
-      var getNetwork = function (callback) {
-        ndexService.getNetworkAsCx(editor.networkId)
-          .success(
-          function (network) {
-            editor.queryErrors = [];
-            cxLoaded = network;
-            editor.cxLoaded = network;
-            editor.prettyCxLoaded = JSON.stringify(editor.cxLoaded, null,'   ');
-            callback();
-          }
-        ).error(
-          function (error) {
-            editor.queryErrors.push(error.data.message);
+          $http({
+            method: 'GET',
+            url: "http://localhost:1234/v1/networks/" + networkId + "/tables/defaultnode"
+          }).then(function (response) {
+            // load the map of node SUIDs to nodes
+            var nodelist = response.data;
+            for (var n = 0; n < nodelist.length; n++) {
+              var node = nodelist[n];
+              editor.nodes[node.SUID] = node;
+            }
+            $http({
+              url: "http://localhost:1234/v1/networks/" + networkId + "/edges",
+              method: 'GET'
+            }).then(function (response) {
+              // now get the edge SUIDs, get the corresponding edge, and fill the edge map.
+              editor.edgeSUIDs = response.data;
+              for (var e = 0; e < editor.edgeSUIDs.length; e++) {
+                var edgeSUID = editor.edgeSUIDs[e];
+                $http({
+                  method: 'GET',
+                  url: "http://localhost:1234/v1/networks/" + networkId + "/edges/" + edgeSUID
+                }).then(function (response) {
+                  var edge = response.data;
+                  editor.edges[edge.SUID] = edge;
+                })
+              }
+            });
 
-          }
-        );
-      };
+          });
 
-      var buildModel = function () {
-        $scope.editor.model = {};
-        editor.log.push('about to load bel model from ' + editor.networkSummary.name);
 
-        cm = BelTranslateService.cxToSm(editor.cxLoaded, editor.log);
-        editor.log.push('finished loading');
-        editor.model = cm;
-        BelModelService.statementModel = cm;
-      };
+        };
 
-      if (editor.networkId) {
+        /*------------------------------------------------------------------------------------
+         Actions
 
-        ndexService.getNetworkSummary(editor.networkId)
-          .success(
-          function (networkSummary) {
-            cns = networkSummary;
-            editor.queryErrors = [];
-            editor.networkSummary = networkSummary;
-            console.log('got networkSummary for ' + editor.networkSummary.name);
-            getNetwork(buildModel);
-          }
-        ).error(
-          function (error) {
-            editor.queryErrors.push(error);
-          }
-        );
-      }
+         Change predicate -> modify edge table
+         Change source or target node -> add modified edge, mark it as edited. Delete old edge
+         Change edge status -> modify edge table
+         accepted
+         insufficient evidence
+         irrelevant to task
+         edited
+         Clone edge -> add copied edge, insert in displayed edges adjacent to original
+         Add node by name -> find identifier for name, check to see if already exists, add node
+         Add edge - only update cytoscape once required fields are set
+         Move edge in table
 
-    }])
+         ------------------------------------------------------------------------------------*/
+
+        /*------------------------------------------------------------------------------------
+         Methods for Drag and Drop on this page
+         ------------------------------------------------------------------------------------*/
+
+        $scope.draggedNode = false;
+
+        /*
+
+         $scope.onDropTerm = function (draggedTerm, targetTerm) {
+         if (draggedTerm && targetTerm && draggedTerm !== targetTerm) {
+         console.log('dropped term ' + draggedTerm.toString('SHORT') + ' on ' + targetTerm.toString('SHORT'));
+         if (draggedTerm instanceof BelTranslateService.BaseTerm && targetTerm instanceof BelTranslateService.BaseTerm) {
+         copyTerm(draggedTerm, targetTerm);
+         } else if (draggedTerm instanceof BelTranslateService.Func && targetTerm instanceof BelTranslateService.Func) {
+         copyTerm(draggedTerm, targetTerm);
+         } else if (draggedTerm instanceof BelTranslateService.Relationship && targetTerm instanceof BelTranslateService.Relationship) {
+         copyTerm(draggedTerm, targetTerm);
+         }
+         }
+         };
+
+         var copyTerm = function (dragged, target) {
+         target.prefix = dragged.prefix;
+         target.name = dragged.name;
+         };
+
+         var copyFunctionTerm = function (dragged, target) {
+         var copy = angular.copy(dragged);
+         target.function = copy.function;
+         target.parameters = copy.parameters;
+         };
+
+         var copyFunctionTermTemplate = function (dragged, target) {
+         var copy = angular.copy(dragged);
+         var baseTerms = [];
+         gatherBaseTerms(target, baseTerms);
+         applyBaseTerms(baseTerms, copy);
+         target.function = copy.function;
+         target.parameters = copy.parameters;
+         };
+
+         var gatherBaseTerms = function (ft, baseTerms) {
+         angular.forEach(ft.parameters, function (parameter) {
+         if (parameter instanceof BelTranslateService.BaseTerm) {
+         baseTerms.push(parameter);
+         } else if (parameter instanceof BelTranslateService.FunctionTerm) {
+         gatherBaseTerms(parameter, baseTerms);
+         }
+         });
+         };
+
+         var applyBaseTerms = function (baseTerms, ft) {
+         angular.forEach(ft.parameters, function (parameter) {
+         if (parameter instanceof BelTranslateService.BaseTerm && parameter.name === '?' && parameter.prefix === '?') {
+         var bt = baseTerms.pop();
+         parameter.name = bt.name;
+         parameter.prefix = bt.prefix;
+         } else if (parameter instanceof BelTranslateService.FunctionTerm) {
+         applyBaseTerms(baseTerms, parameter);
+         }
+         });
+         };
+
+         $scope.onDropFT = function (draggedFunctionTerm, targetFunctionTerm) {
+         if (draggedFunctionTerm) {
+         console.log('dropped FT ' + draggedFunctionTerm.toString('SHORT') + ' on ' + targetFunctionTerm.toString('SHORT'));
+         if (draggedFunctionTerm instanceof BelTranslateService.FunctionTerm && draggedFunctionTerm !== targetFunctionTerm) {
+         if (draggedFunctionTerm instanceof BelTranslateService.FunctionTermTemplate) {
+         copyFunctionTermTemplate(draggedFunctionTerm, targetFunctionTerm);
+         } else {
+         copyFunctionTerm(draggedFunctionTerm, targetFunctionTerm);
+         }
+         }
+         }
+         };
+
+         $scope.onDropToScratchpad = function (dragged) {
+         if (dragged && dragged instanceof BelTranslateService.BaseTerm) {
+         $scope.editor.termScratchpad.push(angular.copy(dragged));
+         }
+         };
+
+         $scope.setCurrentSupport = function (support) {
+         $scope.editor.currentSupport = support;
+         };
+
+
+         */
+
+
+        init();
+      }])
 ;
