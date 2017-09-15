@@ -1,16 +1,16 @@
 <!-- Templates -->
 
 <script type="text/ng-template" id="edge_node_renderer.html">
-  <div class='edge_node'
-       ng-class="overclass"
-       ng-drop="true"
-       ng-drop-success="onDropNode($data,en)"
-       ng-mouseover="overclass='en-highlight'"
-       ng-mouseleave="overclass=''"
-       ng-drag="true"
-       ng-drag-data="node">
+  <span class='edge-node'
+        ng-class="overclass"
+        ng-drop="true"
+        ng-drop-success="onDropNode($data,node)"
+        ng-mouseover="overclass='edge-node-highlight'"
+        ng-mouseleave="overclass=''"
+        ng-drag="true"
+        ng-drag-data="node">
     {{node.name}}
-  </div>
+  </span>
 </script>
 <!--
 <script type="text/ng-template" id="table_node_renderer.html">
@@ -25,52 +25,72 @@
     {{en.toString('SHORT')}}</span>(<span ng-repeat="attribute in tn.attributes" ng-include="'table_node_renderer.html'"></span>)
 </script>-->
 
+
 <script type="text/ng-template" id="edge_renderer.html">
-  <p>
-    <span ng-bind="node=getSourceNode(edge)" ng-include="'edge_node_renderer.html'"></span>
-    {{edge.shared_interaction}}
-    <span ng-bind="node=getTargetNode(edge)" ng-include="'edge_node_renderer.html'"></span>
-  </p>
+  <div>
+    <span class='node'>{{edge.sourceNode.name}}</span>
+    <select
+      ng-model="edge.shared_interaction"
+      ng-change="updateEdgeType(edge)">
+      <!--
+      <option ng-show="edge.originalType"
+              value="edge.originalType">{{edge.originalType}}
+      </option>
+      -->
+      <option ng-repeat="edgeType in currentEdgeTypes" ng-value="edgeType">{{edgeType}}</option>
+    </select>
+    <span class='node'>{{edge.targetNode.name}}</span>
+  </div>
 </script>
 
-<!-- if CyRest then show network selector, otherwise show no-cytoscape> -->
+<!-- CyRest is not available, show no-cytoscape> -->
 <div ng-hide="cyRestAvailable">
-Cytoscape 3.6+ is either (1) not running or (2) does not have CyRest installed or (3) does not have CyNDEx2 installed
+  Cytoscape 3.6+ is either (1) not running or (2) does not have CyRest installed or (3) does not have CyNDEx2 installed
 </div>
+
 <!-- Network Selector -->
+<!-- Cytoscape is available via cyRest and cyNDEx2, show selector here...
+
+ng-options="networkObject.name for networkObject in networksInCytoscape"
+
+
+-->
 <div ng-show="cyRestAvailable">
-<!-- Cytoscape is available via cyRest and cyNDEx2, show selector here... -->
-<select id="networkselector"
-        name="Network Selector"
-        ng-model="currentNetworkObject"
-        ng-change="getCurrentNetwork()"
-        ng-options="networkObject.name for networkObject in networksInCytoscape">
-</select>
+  <select id="networkselector"
+          name="Network Selector"
+          ng-model="currentNetworkObject"
+          ng-change="getCurrentNetwork()">
+    <option value="">---Select a Network---</option>
+    <option ng-repeat="networkObject in networksInCytoscape"
+            ng-value="networkObject">{{networkObject.name}}</option>
+  </select>
+  <div>{{currentEdgeTypes}}</div>
 </div>
 
 <!-- Editor -->
 
 <div ng-show="currentNetworkSUID" class="row">
-  {{currentNetworkName}}
+
 
   <!--  Left Column for Editing -->
 
 
   <div class='col-md-9 AlignCenter edit-model-display'>
-      <div ng-repeat="edgeSUID in edgeSUIDs" ng-include="'edge_renderer.html'">
-      </div>
+    <div class="current-network-title">{{currentNetworkName}}</div>
+    <div ng-repeat="edge in edges" ng-include="'edge_renderer.html'">
+    </div>
   </div>
 
 
   <!--  Right Column for Network Info and Nodes -->
 
-  <div class='col-md-3 AlignCenter network-and-nodes'>
-    <div class='table-node-template'
+  <div class='col-md-3 AlignCenter nodes'>
+    <div class='node'
          ng-repeat='node in nodes'
          ng-drag="true"
          ng-drag-data="node"
          ng-class="overclass"
-         ng-mouseover="overclass='tn-highlight'"
+         ng-mouseover="overclass='node-highlight'"
          ng-mouseleave="overclass=''">
       {{node.name}}
     </div>
@@ -80,5 +100,15 @@ Cytoscape 3.6+ is either (1) not running or (2) does not have CyRest installed o
 </div>
 
 
-
+<!--
+<div>
+  first edge type {{edgeTypes[0]}}
+</div>
+<div>
+  selected edge type {{selectedEdgeType}}
+</div>
+<select ng-model="selectedEdgeType"
+        ng-options="edgeType for edgeType in edgeTypes">
+</select>
+-->
 

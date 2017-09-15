@@ -67,45 +67,41 @@ body {
   }
 }
 
-
-.base-term {
+.edge-node {
   display: inline-block;
 }
 
-.base-term-template {
+.node {
   display: inline-block;
   padding: 5px;
   background-color: rgba(0,0,255,0.1);
   border: 2px solid white;
-
 }
 
-.function-term-template {
-  display: inline-block;
-  padding: 5px;
-  background-color: rgba(255,0,0,0.1);
-  border: 2px solid white;
-}
-
-.function-term {
-  display: inline-block;
-}
-
-div.bt-highlight {
+div.edge-node-highlight {
   background-color: rgba(255,0,0,0.1);
 }
 
-li.bt-highlight {
-  background-color: rgba(255,0,0,0.1);
+div.node-highlight {
+  background-color: rgba(255,0,255,0.1);
 }
 
-span.ft-highlight {
-  background-color: rgba(0,0,255,0.1);
+li.edge-node-highlight {
+  background-color: rgba(255,0,0,0.1);
 }
 
 .edit-model-display {
   height: 600px;
   overflow: scroll;
+}
+
+.current-network-title {
+  background-color: lightseagreen;
+  width: 100%;
+  border: 1px solid;
+  padding: 10px;
+  border-color: deepskyblue;
+  border-radius: 10px;
 }
 
 .support {

@@ -30,6 +30,12 @@ angular.module('networkbenchApp')
         //$scope.editor = {};
         //var editor = $scope.editor;
         $scope.ndexServer = null;
+        $scope.knownEdgeTypes = [
+          "phos",
+          "binds",
+          "reg",
+          "dephos"
+        ];
 
         var init = function () {
           console.log("initializing");
@@ -90,10 +96,15 @@ angular.module('networkbenchApp')
 
         /*
          called when a network is selected for editing
-         TODO: refactor, seems unneccessary
-
          */
         $scope.getCurrentNetwork = function () {
+          $scope.currentNetworkSUID = null;
+          $scope.currentNetworkName = null;
+          $scope.currentNetwork = null;
+          $scope.edges = {};
+          $scope.nodes = {};
+
+
           $scope.currentNetworkSUID = $scope.currentNetworkObject['SUID'];
           $scope.currentNetworkName = $scope.currentNetworkObject.name;
           $scope.getNetwork($scope.currentNetworkSUID);
@@ -104,6 +115,7 @@ angular.module('networkbenchApp')
          */
         $scope.getNetwork = function (networkSuid) {
           console.log("getting network" + networkSuid);
+
           $http({
             method: "GET",
             url: "http://localhost:1234/v1/networks.json?column=SUID&query=" + networkSuid
@@ -111,18 +123,33 @@ angular.module('networkbenchApp')
             function (response) {
               //console.log(response);
               var network = response.data[0].elements;
+
               $scope.currentNetwork = network;
-              console.log($scope.currentNetwork);
+              //console.log($scope.currentNetwork);
+
               var nodelist = network.nodes;
               var edgelist = network.edges;
               for (var n = 0; n < nodelist.length; n++) {
                 var node = nodelist[n].data;
                 $scope.nodes[node['SUID']] = node;
               }
-              for (var e = 0; n < edgelist.length; n++) {
+
+              var edgeTypes = new Set($scope.knownEdgeTypes);
+              console.log("known edge types:");
+              console.log(edgeTypes);
+              for (var e = 0; e < edgelist.length; e++) {
                 var edge = edgelist[e].data;
+                edge["sourceNode"] = $scope.nodes[edge.source];
+                edge["targetNode"] = $scope.nodes[edge.target];
                 $scope.edges[edge['SUID']] = edge;
+
+                edgeTypes.add(edge.shared_interaction);
               }
+              console.log($scope.nodes);
+              console.log($scope.edges);
+              $scope.currentEdgeTypes = Array.from(edgeTypes);
+              console.log("current edge types:");
+              console.log($scope.currentEdgeTypes);
             },
             function (response) {
               console.log("error in getting network");
@@ -136,6 +163,34 @@ angular.module('networkbenchApp')
 
         $scope.getTargetNode = function (edge) {
           return $scope.nodes[edge.target];
+        };
+
+        // PUT /v1/networks/{networkId}/tables/{tableType}
+        $scope.updateEdgeAttributes = function (edge) {
+          console.log("updating edge " + edge.SUID);
+          $http({
+            method: "PUT",
+            url: "http://localhost:1234/v1/networks/" + $scope.currentNetworkSUID + "/tables/defaultedge",
+            data: {
+              "key": "SUID", // This is the unique key column in the existing table
+              "dataKey": "SUID", // Mapping key for the new values
+              "data": [edge]
+            }
+          }).then(function (response) {
+            console.log("updated")
+          });
+        };
+
+        $scope.updateEdgeType = function (edge) {
+          console.log("updating edge type for " + edge.SUID + " type: " + edge.shared_interaction);
+          $http({
+            method: "PUT",
+            url: "http://localhost:1234/v1/networks/"
+            + $scope.currentNetworkSUID + "/tables/defaultedge/columns/interaction",
+            data: [{SUID: edge.SUID, value: edge.shared_interaction}]
+          }).then(function (response) {
+            console.log("updated edge type")
+          });
         };
 
 
